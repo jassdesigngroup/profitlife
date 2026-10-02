@@ -24,7 +24,7 @@ class LocationHours extends Component
     public int $locationId;
 
     /** @var list<array{day_of_week: int|string, opens_at: string, closes_at: string}> */
-    public array $slots = [];
+    public array $shifts = [];
 
     public bool $editing = false;
 
@@ -49,17 +49,17 @@ class LocationHours extends Component
         $this->editing = false;
     }
 
-    public function addSlot(int $day = 1): void
+    public function addShift(int $day = 1): void
     {
         $this->authorize('manageHours', $this->location());
-        $this->slots[] = ['day_of_week' => $day, 'opens_at' => '06:00', 'closes_at' => '12:00'];
+        $this->shifts[] = ['day_of_week' => $day, 'opens_at' => '06:00', 'closes_at' => '12:00'];
     }
 
-    public function removeSlot(int $index): void
+    public function removeShift(int $index): void
     {
         $this->authorize('manageHours', $this->location());
-        unset($this->slots[$index]);
-        $this->slots = array_values($this->slots);
+        unset($this->shifts[$index]);
+        $this->shifts = array_values($this->shifts);
     }
 
     public function save(SyncLocationHours $sync): void
@@ -68,21 +68,21 @@ class LocationHours extends Component
         $this->authorize('manageHours', $location);
 
         $this->validate([
-            'slots' => ['array', 'max:50'],
-            'slots.*.day_of_week' => ['required', 'integer', Rule::enum(DayOfWeek::class)],
-            'slots.*.opens_at' => ['required', 'date_format:H:i'],
-            'slots.*.closes_at' => ['required', 'date_format:H:i'],
+            'shifts' => ['array', 'max:50'],
+            'shifts.*.day_of_week' => ['required', 'integer', Rule::enum(DayOfWeek::class)],
+            'shifts.*.opens_at' => ['required', 'date_format:H:i'],
+            'shifts.*.closes_at' => ['required', 'date_format:H:i'],
         ], [], [
-            'slots.*.day_of_week' => 'día',
-            'slots.*.opens_at' => 'apertura',
-            'slots.*.closes_at' => 'cierre',
+            'shifts.*.day_of_week' => 'día',
+            'shifts.*.opens_at' => 'apertura',
+            'shifts.*.closes_at' => 'cierre',
         ]);
 
         $sync->execute($location, array_map(fn (array $s) => new HourSlot(
             DayOfWeek::from((int) $s['day_of_week']),
             $s['opens_at'],
             $s['closes_at'],
-        ), $this->slots), auth()->user());
+        ), $this->shifts), auth()->user());
 
         $this->editing = false;
         $this->loadSlots();
@@ -108,7 +108,7 @@ class LocationHours extends Component
 
     private function loadSlots(): void
     {
-        $this->slots = $this->location()->hours()->get()->map(fn (LocationHour $h) => [
+        $this->shifts = $this->location()->hours()->get()->map(fn (LocationHour $h) => [
             'day_of_week' => $h->day_of_week->value,
             'opens_at' => substr($h->opens_at, 0, 5),
             'closes_at' => substr($h->closes_at, 0, 5),

@@ -60,7 +60,7 @@ class SyncLocationHours
         foreach ($slots as $i => $slot) {
             if ($slot->opensAt >= $slot->closesAt) {
                 throw ValidationException::withMessages([
-                    "slots.{$i}.closes_at" => 'La hora de cierre debe ser posterior a la de apertura.',
+                    "shifts.{$i}.closes_at" => 'La hora de cierre debe ser posterior a la de apertura.',
                 ]);
             }
 
@@ -73,7 +73,7 @@ class SyncLocationHours
             for ($j = 1; $j < count($daySlots); $j++) {
                 if ($daySlots[$j][1]->opensAt < $daySlots[$j - 1][1]->closesAt) {
                     throw ValidationException::withMessages([
-                        "slots.{$daySlots[$j][0]}.opens_at" => "Las franjas del {$daySlots[$j][1]->day->label()} se solapan.",
+                        "shifts.{$daySlots[$j][0]}.opens_at" => "Las franjas del {$daySlots[$j][1]->day->label()} se solapan.",
                     ]);
                 }
             }
