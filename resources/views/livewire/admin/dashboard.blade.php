@@ -38,7 +38,7 @@
         {{-- Estructura actual --}}
         <x-card title="Estructura" description="Datos actuales{{ $currentLocation ? ' de '.$currentLocation->name : '' }}." class="lg:col-span-1">
             <dl class="divide-y divide-steel-200">
-                @foreach ([['locations', 'Sedes activas', 'map-pin', 'admin.locations.index'], ['rooms', 'Salas activas', 'squares', 'admin.locations.index'], ['staff', 'Staff activo', 'users', 'admin.staff.index']] as [$key, $label, $icon, $route])
+                @foreach ([['members', 'Clientes activos', 'heart', 'admin.members.index'], ['locations', 'Sedes activas', 'map-pin', 'admin.locations.index'], ['rooms', 'Salas activas', 'squares', 'admin.locations.index'], ['staff', 'Staff activo', 'users', 'admin.staff.index']] as [$key, $label, $icon, $route])
                     @if ($stats[$key] !== null)
                         <div class="flex items-center justify-between py-3 first:pt-0 last:pb-0">
                             <dt class="flex items-center gap-2 text-sm font-medium text-ink-950"><x-icon :name="$icon" class="size-4 text-steel-500" /> {{ $label }}</dt>
@@ -52,6 +52,12 @@
         {{-- Accesos rápidos --}}
         <x-card title="Accesos rápidos" class="lg:col-span-1">
             <div class="grid gap-2">
+                @can('members.create')
+                    <a href="{{ route('admin.members.create') }}" wire:navigate class="flex items-center justify-between rounded-lg px-3 py-3 ring-1 ring-steel-200 hover:bg-canvas hover:ring-brand-200">
+                        <span class="flex items-center gap-3 text-sm font-semibold text-ink-950"><x-icon name="heart" class="size-5 text-brand-700" /> Registrar un cliente</span>
+                        <x-icon name="chevron-right" class="size-4 text-steel-500" />
+                    </a>
+                @endcan
                 @can('staff.create')
                     <a href="{{ route('admin.staff.create') }}" wire:navigate class="flex items-center justify-between rounded-lg px-3 py-3 ring-1 ring-steel-200 hover:bg-canvas hover:ring-brand-200">
                         <span class="flex items-center gap-3 text-sm font-semibold text-ink-950"><x-icon name="paper-plane" class="size-5 text-brand-700" /> Invitar a un miembro del staff</span>

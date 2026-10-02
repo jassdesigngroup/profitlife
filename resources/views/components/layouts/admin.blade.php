@@ -3,11 +3,13 @@
     $user = auth()->user();
     $nav = [
         ['label' => 'Inicio', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard', 'icon' => 'home', 'can' => 'dashboard.view'],
+        ['label' => 'Clientes', 'route' => 'admin.members.index', 'active' => 'admin.members.*', 'icon' => 'heart', 'can' => 'members.view'],
         ['label' => 'Sedes', 'route' => 'admin.locations.index', 'active' => 'admin.locations.*', 'icon' => 'map-pin', 'can' => 'locations.view'],
         ['label' => 'Staff', 'route' => 'admin.staff.index', 'active' => 'admin.staff.*', 'icon' => 'users', 'can' => 'staff.view'],
     ];
     $adminNav = [
         ['label' => 'Roles y permisos', 'route' => 'admin.roles.index', 'active' => 'admin.roles.*', 'icon' => 'shield', 'can' => 'roles.view'],
+        ['label' => 'Consentimientos', 'route' => 'admin.consents.index', 'active' => 'admin.consents.*', 'icon' => 'check-circle', 'can' => 'consent-templates.manage'],
         ['label' => 'Auditoría', 'route' => 'admin.audit.index', 'active' => 'admin.audit.*', 'icon' => 'clipboard', 'can' => 'audit.view'],
     ];
     $visibleAdminNav = array_filter($adminNav, fn ($item) => $user->can($item['can']));

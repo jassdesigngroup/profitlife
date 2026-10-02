@@ -31,7 +31,7 @@ class UpdateMember
             }
         }
 
-        $member->update($data->toAttributes());
+        $member->update($data->toAttributes() + array_filter(['joined_on' => $data->joinedOn]));
 
         return $member;
     }
