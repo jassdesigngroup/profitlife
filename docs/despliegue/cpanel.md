@@ -191,6 +191,11 @@ php artisan up
   o `APPOINTMENT_CANCELLATION_HOURS`). Después: cree los servicios en *Servicios*, marque a los profesionales como
   "Atiende citas" en *Staff* y defina su *Disponibilidad*; sin franjas no se les puede agendar. Los correos de
   confirmación de citas salen por la cola (cron de `schedule:run`).
+- **Fase 7 (fisioterapia):** `migrate` crea la historia clínica, el equipo tratante, planes, sesiones, notas y la
+  bitácora de accesos. `db:seed` añade el permiso `clinical-notes.emergency` (solo Super Admin). Los campos clínicos se
+  cifran con `APP_KEY`: **guarde una copia segura del `.env`**; si se pierde la clave, las historias no se pueden leer.
+  La exportación a PDF la hace por defecto solo el Super Admin; para dársela a los fisioterapeutas active
+  "Exportar historia clínica" en *Roles y permisos*.
 
 ## 9. Comprobaciones finales
 

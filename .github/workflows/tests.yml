@@ -45,7 +45,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: intl, pdo_mysql, mbstring, bcmath
+          extensions: intl, pdo_mysql, mbstring, bcmath, dom, gd
           coverage: none
 
       - name: Dependencias

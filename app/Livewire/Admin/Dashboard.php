@@ -15,6 +15,7 @@ use App\Domain\Members\Enums\MemberStatus;
 use App\Domain\Members\Models\Member;
 use App\Domain\Memberships\Enums\MembershipStatus as PlanMembershipStatus;
 use App\Domain\Memberships\Models\Membership;
+use App\Domain\Physiotherapy\Models\ClinicalNote;
 use App\Domain\Settings\Services\Settings;
 use App\Domain\Staff\Enums\StaffStatus;
 use App\Domain\Staff\Models\Staff;
@@ -93,8 +94,17 @@ class Dashboard extends Component
             ? Activity::query()->with('causer')->latest('id')->limit(6)->get()
             : collect();
 
+        // Notas propias sin firmar con más de 24 horas (recordatorio para el profesional).
+        $unsignedNotes = $user->staff && $user->can(Permission::ClinicalNotesSign->value)
+            ? ClinicalNote::query()->where('author_id', $user->staff->id)->whereNull('signed_at')
+                ->where('created_at', '<', now()->subDay())
+                ->with('record.member:id,first_name,last_name')
+                ->oldest('id')->limit(10)->get()
+            : collect();
+
         return view('livewire.admin.dashboard', [
             'user' => $user,
+            'unsignedNotes' => $unsignedNotes,
             'currentLocation' => $current->location(),
             'stats' => $stats,
             'kpis' => $kpis,

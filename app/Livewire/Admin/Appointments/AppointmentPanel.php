@@ -9,6 +9,7 @@ use App\Domain\Appointments\Actions\RescheduleAppointment;
 use App\Domain\Appointments\Enums\AppointmentStatus;
 use App\Domain\Appointments\Models\Appointment;
 use App\Domain\Appointments\Services\Availability;
+use App\Domain\Physiotherapy\Models\PhysiotherapyRecord;
 use App\Domain\Staff\Models\Staff;
 use App\Livewire\Admin\Concerns\InteractsWithToasts;
 use Carbon\CarbonImmutable;
@@ -102,6 +103,14 @@ class AppointmentPanel extends Component
         $to = AppointmentStatus::from($status);
         $mark->execute($appointment, $to, auth()->user());
 
+        // Si es una cita clínica del profesional, el panel queda abierto con el enlace a la nota.
+        if ($to === AppointmentStatus::Completed && $this->clinicalLink($appointment->fresh()) !== null) {
+            $this->dispatch('appointments-changed');
+            $this->toast('Cita marcada como atendida. Registre la nota clínica.');
+
+            return;
+        }
+
         $this->changed($to === AppointmentStatus::Completed ? 'Cita marcada como atendida.' : 'Inasistencia registrada.');
     }
 
@@ -173,7 +182,27 @@ class AppointmentPanel extends Component
             'staffOptions' => $staffOptions,
             'freeSlots' => $slots,
             'started' => $appointment ? $appointment->starts_at->lessThanOrEqualTo(now()) : false,
+            'clinicalLink' => $this->clinicalLink($appointment),
         ]);
+    }
+
+    /**
+     * Enlace a la nota clínica para una cita clínica atendida del propio
+     * profesional que aún no tiene sesión registrada.
+     */
+    private function clinicalLink(?Appointment $appointment): ?string
+    {
+        if ($appointment === null || $appointment->status !== AppointmentStatus::Completed || ! $appointment->service?->is_clinical) {
+            return null;
+        }
+
+        $record = PhysiotherapyRecord::query()->where('member_id', $appointment->member_id)->first();
+        if ($record === null || $appointment->physiotherapySession()->exists() || ! auth()->user()->can('write', $record)
+            || auth()->user()->staff?->id !== $appointment->staff_id) {
+            return null;
+        }
+
+        return route('admin.clinical.show', ['member' => $appointment->member_id, 'cita' => $appointment->id]);
     }
 
     private function changed(string $message, string $type = 'success'): void

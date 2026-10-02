@@ -46,6 +46,16 @@
         @endforeach
     </div>
 
+    @if ($unsignedNotes->isNotEmpty())
+        <x-alert type="warning" class="mt-8" :title="'Tiene '.$unsignedNotes->count().' notas clínicas sin firmar de hace más de 24 horas'">
+            <ul class="mt-1 space-y-0.5">
+                @foreach ($unsignedNotes as $note)
+                    <li><a href="{{ route('admin.clinical.show', $note->record->member_id) }}" wire:navigate class="font-semibold underline">{{ $note->record->member?->full_name }}</a> · <x-datetime :value="$note->created_at" format="d/m/Y" /></li>
+                @endforeach
+            </ul>
+        </x-alert>
+    @endif
+
     <div class="mt-8 grid gap-6 lg:grid-cols-3">
         {{-- Estructura actual --}}
         <x-card title="Estructura" description="Datos actuales{{ $currentLocation ? ' de '.$currentLocation->name : '' }}." class="lg:col-span-1">
