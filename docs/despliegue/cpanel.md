@@ -1,7 +1,8 @@
 # Despliegue en cPanel — app.profit-life.co
 
 Guía para publicar PROFITLIFE en un hosting cPanel con el subdominio `app.profit-life.co`.
-`USUARIO` es su usuario de cPanel (carpeta `/home/USUARIO`).
+`USUARIO` es su usuario de cPanel: en este hosting es `profitlife` (carpeta `/home/profitlife`).
+El servidor web es LiteSpeed (existe la carpeta `lscache`); es compatible con el `.htaccess` de Laravel.
 
 ## 0. Requisitos del hosting (verificar antes)
 
@@ -15,17 +16,24 @@ Guía para publicar PROFITLIFE en un hosting cPanel con el subdominio `app.profi
 
 ## 1. Subdominio y SSL
 
-1. *Domains → Create A New Domain*: `app.profit-life.co`.
-2. Desmarque "Share document root" y escriba como raíz: **`profitlife/public`**
-   (la aplicación queda en `/home/USUARIO/profitlife` y solo `public/` es accesible desde la web).
-3. *SSL/TLS Status → Run AutoSSL* para emitir el certificado del subdominio.
+El subdominio ya existe y cPanel creó su carpeta `/home/profitlife/app.profit-life.co`.
+El código se instala **dentro de esa carpeta** y la web debe apuntar solo a su subcarpeta `public`:
+
+1. *Domains* → `app.profit-life.co` → *Manage* → **Document Root**: cambiar `app.profit-life.co`
+   por **`app.profit-life.co/public`** y guardar.
+   Así `.env`, el código y `storage` quedan fuera del alcance de la web.
+2. *SSL/TLS Status → Run AutoSSL* para emitir el certificado del subdominio.
+3. *LiteSpeed Web Cache Manager* (si aparece): no active la caché para este subdominio; la aplicación
+   tiene sesiones y datos privados por usuario.
+
+Si su cPanel no permite editar el Document Root, use la alternativa del paso 4.
 
 ## 2. Base de datos
 
 En *MySQL Databases*:
 
-1. Crear la base `USUARIO_profitlife`.
-2. Crear el usuario `USUARIO_profitlife` con una contraseña fuerte.
+1. Crear la base `app` (cPanel la nombra `profitlife_app`).
+2. Crear el usuario `app` (queda `profitlife_app`) con una contraseña fuerte.
 3. Añadir el usuario a la base con **ALL PRIVILEGES**.
 
 ## 3. Correo de envío
@@ -39,12 +47,23 @@ En *MySQL Databases*:
 Por Terminal/SSH:
 
 ```bash
-cd ~
-git clone https://github.com/jassdesigngroup/profitlife.git profitlife
-cd profitlife
+cd ~/app.profit-life.co
+ls -A                  # debe estar vacía; si cPanel dejó algo (p. ej. cgi-bin, .htaccess), bórrelo
+git clone https://github.com/jassdesigngroup/profitlife.git .
 git checkout main      # cuando el PR de la Fase 2 esté aprobado y fusionado
 composer install --no-dev --optimize-autoloader
 ```
+
+**Alternativa sin editar el Document Root**: instale el código en otra carpeta y convierta la del
+subdominio en un enlace a `public`:
+
+```bash
+cd ~
+git clone https://github.com/jassdesigngroup/profitlife.git profitlife
+rm -rf ~/app.profit-life.co            # solo si está vacía
+ln -s ~/profitlife/public ~/app.profit-life.co
+```
+En ese caso, en el resto de la guía use `~/profitlife` en lugar de `~/app.profit-life.co`.
 
 Si el repositorio es privado, cree un *token* de GitHub de solo lectura o una *deploy key* para clonar.
 Si `composer` no existe en el servidor: `curl -sS https://getcomposer.org/installer | php` y use `php composer.phar`.
@@ -56,7 +75,7 @@ Los hostings cPanel casi nunca tienen Node. Compílelos en su equipo y suba solo
 ```bash
 # en su equipo, dentro del proyecto
 npm ci && npm run build
-# subir la carpeta public/build completa a /home/USUARIO/profitlife/public/build
+# subir la carpeta public/build completa a /home/profitlife/app.profit-life.co/public/build
 # (File Manager → Upload un .zip y Extract, o scp/rsync)
 ```
 
@@ -85,8 +104,8 @@ LOG_LEVEL=warning
 DB_CONNECTION=mysql
 DB_HOST=localhost
 DB_PORT=3306
-DB_DATABASE=USUARIO_profitlife
-DB_USERNAME=USUARIO_profitlife
+DB_DATABASE=profitlife_app
+DB_USERNAME=profitlife_app
 DB_PASSWORD="la-contraseña-de-la-base"
 
 SESSION_DRIVER=database
@@ -128,7 +147,7 @@ las sedes, sus horarios y salas, e invite al equipo.
 En *Cron Jobs*, añada una tarea **cada minuto** (`* * * * *`):
 
 ```bash
-cd /home/USUARIO/profitlife && /usr/local/bin/php artisan schedule:run >> /dev/null 2>&1
+cd /home/profitlife/app.profit-life.co && /usr/local/bin/php artisan schedule:run >> /dev/null 2>&1
 ```
 
 La ruta de PHP puede variar; compruébela en Terminal con `which php` (debe ser la versión 8.3, p. ej.
@@ -137,7 +156,7 @@ La ruta de PHP puede variar; compruébela en Terminal con `which php` (debe ser 
 ## 8. Actualizar a una nueva versión
 
 ```bash
-cd ~/profitlife
+cd ~/app.profit-life.co
 php artisan down
 git pull origin main
 composer install --no-dev --optimize-autoloader
