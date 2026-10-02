@@ -33,7 +33,7 @@ class MemberDocuments extends Component
 
     public function create(): void
     {
-        $this->authorize('update', $this->member());
+        abort_if($this->allowedCategories() === [], 403);
         $this->reset(['title', 'category', 'file']);
         $this->resetValidation();
         $this->showForm = true;
@@ -42,7 +42,7 @@ class MemberDocuments extends Component
     public function save(StoreDocument $store): void
     {
         $member = $this->member();
-        $this->authorize('update', $member);
+        abort_if($this->allowedCategories() === [], 403);
 
         $data = $this->validate([
             'title' => ['required', 'string', 'max:150'],
@@ -52,9 +52,10 @@ class MemberDocuments extends Component
 
         $category = DocumentCategory::from($data['category']);
 
-        if ($category->sensitivity() === DocumentSensitivity::Clinical) {
-            $this->authorize('uploadClinicalDocuments', $member);
-        }
+        // Clínicos: permiso clínico. Administrativos: permiso de edición del cliente.
+        $category->sensitivity() === DocumentSensitivity::Clinical
+            ? $this->authorize('uploadClinicalDocuments', $member)
+            : $this->authorize('update', $member);
 
         $store->execute($member, $this->file, $category, $data['title'], auth()->user());
 
@@ -88,20 +89,25 @@ class MemberDocuments extends Component
             'documents' => $documents,
             'categories' => $this->allowedCategories(),
             'canClinical' => $canClinical,
+            'canUpload' => $this->allowedCategories() !== [],
         ]);
     }
 
     /**
+     * Categorías que el usuario puede subir para este cliente.
+     *
      * @return array<string, string>
      */
     private function allowedCategories(): array
     {
         $member = $this->member();
-        $canClinical = auth()->user()->can('uploadClinicalDocuments', $member);
+        $user = auth()->user();
+        $canClinical = $user->can('uploadClinicalDocuments', $member);
+        $canAdministrative = $user->can('update', $member);
 
         return collect(DocumentCategory::cases())
             ->reject(fn (DocumentCategory $c) => $c === DocumentCategory::Consent) // se suben desde Consentimientos
-            ->reject(fn (DocumentCategory $c) => $c->sensitivity() === DocumentSensitivity::Clinical && ! $canClinical)
+            ->filter(fn (DocumentCategory $c) => $c->sensitivity() === DocumentSensitivity::Clinical ? $canClinical : $canAdministrative)
             ->mapWithKeys(fn (DocumentCategory $c) => [$c->value => $c->label()])
             ->all();
     }

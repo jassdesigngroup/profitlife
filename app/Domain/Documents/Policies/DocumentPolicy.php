@@ -33,8 +33,10 @@ class DocumentPolicy
         }
 
         $member = $document->member()->withoutGlobalScope(LocationScope::class)->first();
+        $canManage = $document->isClinical()
+            ? $user->can('uploadClinicalDocuments', $member)
+            : $user->can('update', $member);
 
-        return $user->can('update', $member)
-            && ($document->uploaded_by === $user->id || $user->can(Permission::MembersDelete->value));
+        return $canManage && ($document->uploaded_by === $user->id || $user->can(Permission::MembersDelete->value));
     }
 }

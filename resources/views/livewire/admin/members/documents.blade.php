@@ -1,8 +1,8 @@
 <div>
     <x-card title="Documentos" :description="$canClinical ? 'Incluye documentos clínicos (solo visibles para personal clínico).' : 'Documentos administrativos del cliente.'" :padding="false">
-        @can('update', $member)
+        @if ($canUpload)
             <x-slot:actions><x-button size="sm" icon="plus" wire:click="create">Subir documento</x-button></x-slot:actions>
-        @endcan
+        @endif
 
         @if ($documents->isEmpty())
             <x-empty-state icon="squares" title="Sin documentos" description="Suba contratos, identificaciones u otros soportes. Se guardan de forma privada." />

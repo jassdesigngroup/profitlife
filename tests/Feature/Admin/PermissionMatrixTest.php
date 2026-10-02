@@ -28,11 +28,19 @@ dataset('pantallas', function () {
         'crear staff' => ['admin.staff.create', [], [RoleName::SuperAdmin, RoleName::Admin, RoleName::LocationManager]],
         'roles' => ['admin.roles.index', [], [RoleName::SuperAdmin, RoleName::Admin]],
         'auditoría' => ['admin.audit.index', [], [RoleName::SuperAdmin, RoleName::Admin]],
+        'listado de clientes' => ['admin.members.index', [], $all],
+        'ficha de cliente' => ['admin.members.show', ['member'], $all],
+        'crear cliente' => ['admin.members.create', [], [RoleName::SuperAdmin, RoleName::Admin, RoleName::LocationManager, RoleName::Reception]],
+        'editar cliente' => ['admin.members.edit', ['member'], [RoleName::SuperAdmin, RoleName::Admin, RoleName::LocationManager, RoleName::Reception]],
+        'plantillas de consentimiento' => ['admin.consents.index', [], [RoleName::SuperAdmin, RoleName::Admin]],
     ];
 });
 
 it('aplica la matriz de acceso por rol', function (string $route, array $params, array $allowed) {
     $parameters = in_array('location', $params, true) ? ['location' => $this->location->id] : [];
+    if (in_array('member', $params, true)) {
+        $parameters = ['member' => memberAt($this->location)->id];
+    }
 
     foreach (RoleName::staffRoles() as $role) {
         $user = staffUser($role, [$this->location]);

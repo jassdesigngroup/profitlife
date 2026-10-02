@@ -3,6 +3,7 @@
 use App\Domain\Identity\Enums\RoleName;
 use App\Domain\Identity\Models\User;
 use App\Domain\Locations\Models\Location;
+use App\Domain\Members\Models\Member;
 use App\Domain\Staff\Models\Staff;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -37,4 +38,9 @@ function staffUser(RoleName $role, array $locations = [], bool $twoFactor = true
 function staffOf(User $user): Staff
 {
     return Staff::query()->withoutGlobalScopes()->where('user_id', $user->id)->firstOrFail();
+}
+
+function memberAt(Location $location, array $attributes = []): Member
+{
+    return Member::factory()->create(['home_location_id' => $location->id] + $attributes);
 }
