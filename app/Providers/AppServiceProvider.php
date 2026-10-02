@@ -4,6 +4,9 @@ namespace App\Providers;
 
 use App\Domain\Audit\Listeners\AuthenticationActivitySubscriber;
 use App\Domain\Audit\Policies\ActivityPolicy;
+use App\Domain\Billing\Events\InvoiceSettled;
+use App\Domain\Billing\Models\Invoice;
+use App\Domain\Billing\Models\Payment;
 use App\Domain\Consents\Models\Consent;
 use App\Domain\Consents\Models\ConsentTemplate;
 use App\Domain\Documents\Models\Document;
@@ -16,6 +19,9 @@ use App\Domain\Locations\Models\Room;
 use App\Domain\Members\Models\EmergencyContact;
 use App\Domain\Members\Models\Member;
 use App\Domain\Members\Models\MemberNote;
+use App\Domain\Memberships\Listeners\ReactivateMembershipOnPayment;
+use App\Domain\Memberships\Models\Membership;
+use App\Domain\Memberships\Models\MembershipPlan;
 use App\Domain\Notifications\Listeners\RecordNotificationLog;
 use App\Domain\Notifications\Models\NotificationLog;
 use App\Domain\Settings\Models\Setting;
@@ -68,12 +74,17 @@ class AppServiceProvider extends ServiceProvider
             'document' => Document::class,
             'consent_template' => ConsentTemplate::class,
             'consent' => Consent::class,
+            'membership_plan' => MembershipPlan::class,
+            'membership' => Membership::class,
+            'invoice' => Invoice::class,
+            'payment' => Payment::class,
             'role' => Role::class,
             'permission' => Permission::class,
         ]);
 
         Event::subscribe(AuthenticationActivitySubscriber::class);
         Event::subscribe(RecordNotificationLog::class);
+        Event::listen(InvoiceSettled::class, ReactivateMembershipOnPayment::class);
 
         // Las peticiones de Livewire repiten las barreras de la ruta original.
         Livewire::addPersistentMiddleware([

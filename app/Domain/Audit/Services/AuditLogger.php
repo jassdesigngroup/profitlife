@@ -26,7 +26,7 @@ class AuditLogger
         ?User $causer = null,
         array $properties = [],
         ?string $description = null,
-    ): Activity {
+    ): ?Activity {
         $logger = activity($logName)
             ->event($event->value)
             ->withProperties($properties);
@@ -41,7 +41,9 @@ class AuditLogger
             $logger->causedByAnonymous();
         }
 
-        /** @var Activity */
-        return $logger->log($description ?? $event->label());
+        // Nulo cuando el registro está desactivado (p. ej. al sembrar datos de ejemplo).
+        $activity = $logger->log($description ?? $event->label());
+
+        return $activity instanceof Activity ? $activity : null;
     }
 }

@@ -88,7 +88,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 P::CheckInsView, P::CheckInsCreate, P::CheckInsOverride,
                 P::AppointmentsView, P::AppointmentsViewAll, P::AppointmentsCreate, P::AppointmentsUpdate, P::AppointmentsCancel,
                 P::TrainingView,
-                P::PaymentsView, P::PaymentsCreate, P::PaymentsRefund, P::PaymentsVoid,
+                P::PaymentsView, P::PaymentsCreate, P::PaymentsRefund, P::PaymentsVoid, P::PaymentsDiscount,
                 P::ReportsView, P::ReportsExport,
             ],
 

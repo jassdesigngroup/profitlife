@@ -10,8 +10,12 @@ use App\Domain\Locations\Models\Location;
 use App\Domain\Members\Enums\Gender;
 use App\Domain\Members\Enums\MemberStatus;
 use App\Domain\Members\Policies\MemberPolicy;
+use App\Domain\Memberships\Enums\AccessScope;
+use App\Domain\Memberships\Enums\MembershipStatus;
+use App\Domain\Memberships\Models\Membership;
 use App\Domain\Shared\Enums\DocumentType;
 use App\Support\Concerns\HasLocationScope;
+use App\Support\Scopes\LocationScope;
 use Database\Factories\MemberFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -59,6 +63,77 @@ class Member extends Model
     public function locationScopeColumn(): string
     {
         return 'home_location_id';
+    }
+
+    /**
+     * Visible en su sede principal y en las sedes donde tiene una membresía
+     * vigente: la de compra y las del plan (o todas, si el plan es global).
+     *
+     * @param  Builder<static>  $query
+     * @param  list<int>  $locationIds
+     */
+    public function applyLocationRestriction(Builder $query, array $locationIds): void
+    {
+        $query->where(function (Builder $q) use ($locationIds) {
+            $q->whereIn($this->qualifyColumn('home_location_id'), $locationIds)
+                ->orWhereHas('memberships', function (Builder $m) use ($locationIds) {
+                    $m->withoutGlobalScope(LocationScope::class)
+                        ->whereIn('status', MembershipStatus::currentValues())
+                        ->where(fn (Builder $mm) => $mm
+                            ->whereIn('purchase_location_id', $locationIds)
+                            ->orWhereHas('plan', fn (Builder $p) => $p
+                                ->where('access_scope', AccessScope::AllLocations)
+                                ->orWhereHas('locations', fn (Builder $l) => $l->whereIn('locations.id', $locationIds))));
+                });
+        });
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function locationIds(): array
+    {
+        $ids = [(int) $this->home_location_id];
+
+        $memberships = $this->memberships()->withoutGlobalScope(LocationScope::class)
+            ->whereIn('status', MembershipStatus::currentValues())
+            ->with('plan.locations')
+            ->get();
+
+        foreach ($memberships as $membership) {
+            if ($membership->plan?->access_scope === AccessScope::AllLocations) {
+                return Location::query()->withoutGlobalScope(LocationScope::class)->pluck('id')->map(fn ($id) => (int) $id)->all();
+            }
+
+            $ids[] = (int) $membership->purchase_location_id;
+            foreach ($membership->plan?->locations ?? [] as $location) {
+                $ids[] = (int) $location->id;
+            }
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    /**
+     * @return HasMany<Membership, $this>
+     */
+    public function memberships(): HasMany
+    {
+        return $this->hasMany(Membership::class);
+    }
+
+    /**
+     * Membresía vigente más reciente (activa, por iniciar, congelada o suspendida).
+     */
+    public function currentMembership(): ?Membership
+    {
+        return $this->memberships()->withoutGlobalScope(LocationScope::class)
+            ->whereIn('status', MembershipStatus::currentValues())
+            ->orderBy('starts_on')
+            ->with('plan')
+            ->get()
+            ->sortBy(fn (Membership $m) => $m->status === MembershipStatus::Active ? 0 : 1)
+            ->first();
     }
 
     /**

@@ -43,6 +43,17 @@ enum AuditEvent: string
     case ConsentAccepted = 'consent_accepted';
     case ConsentRevoked = 'consent_revoked';
     case TemplateVersionCreated = 'template_version_created';
+    case MembershipSold = 'membership_sold';
+    case MembershipRenewed = 'membership_renewed';
+    case MembershipFrozen = 'membership_frozen';
+    case MembershipUnfrozen = 'membership_unfrozen';
+    case MembershipCancelled = 'membership_cancelled';
+    case InvoiceIssued = 'invoice_issued';
+    case InvoiceVoided = 'invoice_voided';
+    case PaymentRecorded = 'payment_recorded';
+    case PaymentVoided = 'payment_voided';
+    case DiscountApplied = 'discount_applied';
+    case SettingsUpdated = 'settings_updated';
     case Created = 'created';
     case Updated = 'updated';
     case Deleted = 'deleted';
@@ -82,6 +93,17 @@ enum AuditEvent: string
             self::ConsentAccepted => 'Consentimiento aceptado',
             self::ConsentRevoked => 'Consentimiento revocado',
             self::TemplateVersionCreated => 'Nueva versión de plantilla',
+            self::MembershipSold => 'Membresía vendida',
+            self::MembershipRenewed => 'Membresía renovada',
+            self::MembershipFrozen => 'Membresía congelada',
+            self::MembershipUnfrozen => 'Membresía reanudada',
+            self::MembershipCancelled => 'Membresía cancelada',
+            self::InvoiceIssued => 'Comprobante emitido',
+            self::InvoiceVoided => 'Comprobante anulado',
+            self::PaymentRecorded => 'Pago registrado',
+            self::PaymentVoided => 'Pago anulado',
+            self::DiscountApplied => 'Descuento aplicado',
+            self::SettingsUpdated => 'Ajustes modificados',
             self::Created => 'Creación',
             self::Updated => 'Modificación',
             self::Deleted => 'Eliminación',
@@ -95,7 +117,9 @@ enum AuditEvent: string
             self::LoginFailed, self::Lockout, self::TwoFactorFailed, self::Deleted, self::TwoFactorDisabled => 'danger',
             self::RolesUpdated, self::PermissionsUpdated, self::StatusChanged => 'warning',
             self::Created, self::Login, self::InvitationAccepted, self::TwoFactorEnabled, self::ConsentAccepted => 'success',
-            self::ConsentRevoked, self::DocumentDeleted, self::NoteDeleted => 'warning',
+            self::ConsentRevoked, self::DocumentDeleted, self::NoteDeleted, self::DiscountApplied, self::MembershipFrozen => 'warning',
+            self::InvoiceVoided, self::PaymentVoided, self::MembershipCancelled => 'danger',
+            self::MembershipSold, self::MembershipRenewed, self::PaymentRecorded => 'success',
             self::DocumentDownloaded => 'info',
             default => 'neutral',
         };
@@ -123,6 +147,8 @@ enum AuditEvent: string
             'members' => 'Clientes',
             'documents' => 'Documentos',
             'consents' => 'Consentimientos',
+            'memberships' => 'Membresías',
+            'billing' => 'Pagos',
             default => (string) $logName,
         };
     }

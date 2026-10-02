@@ -19,7 +19,7 @@ class MemberPolicy
 
     public function view(User $user, Member $member): bool
     {
-        return $user->can(Permission::MembersView->value) && $user->canAccessLocation($member->home_location_id);
+        return $user->can(Permission::MembersView->value) && $user->canAccessAnyLocation($member->locationIds());
     }
 
     public function create(User $user): bool
@@ -29,12 +29,12 @@ class MemberPolicy
 
     public function update(User $user, Member $member): bool
     {
-        return $user->can(Permission::MembersUpdate->value) && $user->canAccessLocation($member->home_location_id);
+        return $user->can(Permission::MembersUpdate->value) && $user->canAccessAnyLocation($member->locationIds());
     }
 
     public function delete(User $user, Member $member): bool
     {
-        return $user->can(Permission::MembersDelete->value) && $user->canAccessLocation($member->home_location_id);
+        return $user->can(Permission::MembersDelete->value) && $user->canAccessAnyLocation($member->locationIds());
     }
 
     public function viewClinicalDocuments(User $user, Member $member): bool

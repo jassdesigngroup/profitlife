@@ -103,6 +103,7 @@ enum Permission: string
     case PaymentsCreate = 'payments.create';
     case PaymentsRefund = 'payments.refund';
     case PaymentsVoid = 'payments.void';
+    case PaymentsDiscount = 'payments.discount';
 
     // Reportes
     case ReportsView = 'reports.view';
@@ -229,7 +230,8 @@ enum Permission: string
             self::PaymentsView => 'Ver pagos',
             self::PaymentsCreate => 'Registrar pagos',
             self::PaymentsRefund => 'Reembolsar pagos',
-            self::PaymentsVoid => 'Anular facturas',
+            self::PaymentsVoid => 'Anular comprobantes y pagos',
+            self::PaymentsDiscount => 'Aplicar descuentos',
             self::ReportsView => 'Ver reportes',
             self::ReportsExport => 'Exportar reportes',
         };

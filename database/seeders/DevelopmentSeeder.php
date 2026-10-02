@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Domain\Billing\Enums\PaymentMethod;
 use App\Domain\Consents\Enums\ConsentType;
 use App\Domain\Consents\Models\ConsentTemplate;
 use App\Domain\Identity\Enums\RoleName;
@@ -13,9 +14,15 @@ use App\Domain\Members\Enums\MemberStatus;
 use App\Domain\Members\Models\EmergencyContact;
 use App\Domain\Members\Models\Member;
 use App\Domain\Members\Services\MemberNumber;
+use App\Domain\Memberships\Actions\SellMembership;
+use App\Domain\Memberships\Enums\AccessScope;
+use App\Domain\Memberships\Enums\DurationUnit;
+use App\Domain\Memberships\Enums\VisitLimitPeriod;
+use App\Domain\Memberships\Models\MembershipPlan;
 use App\Domain\Shared\Enums\DocumentType;
 use App\Domain\Staff\Enums\StaffStatus;
 use App\Domain\Staff\Models\Staff;
+use App\Support\BusinessDate;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Activitylog\Facades\Activity;
@@ -85,6 +92,7 @@ class DevelopmentSeeder extends Seeder
 
         $this->members($cabecera, $provenza, $memberUser);
         $this->consentTemplates();
+        $this->plansAndMemberships($cabecera, $provenza);
 
         Activity::enableLogging();
     }
@@ -119,6 +127,43 @@ class DevelopmentSeeder extends Seeder
 
         $create(['home_location_id' => $cabecera->id, 'status' => MemberStatus::Inactive]);
         $create(['home_location_id' => $provenza->id, 'status' => MemberStatus::Blocked]);
+    }
+
+    private function plansAndMemberships(Location $cabecera, Location $provenza): void
+    {
+        if (MembershipPlan::query()->exists()) {
+            return;
+        }
+
+        $plan = fn (array $attributes) => MembershipPlan::query()->create($attributes + [
+            'billing_unit' => $attributes['duration_unit'],
+            'billing_count' => $attributes['duration_count'],
+            'currency' => config('profitlife.currency'),
+            'tax_rate_bps' => 0,
+            'access_scope' => AccessScope::AllLocations,
+            'is_active' => true,
+        ]);
+
+        $monthly = $plan(['name' => 'Mensual', 'slug' => 'mensual', 'duration_unit' => DurationUnit::Month, 'duration_count' => 1, 'price_cents' => 15000000, 'enrollment_fee_cents' => 5000000, 'max_freeze_days' => 7, 'auto_renews' => true, 'sort_order' => 1, 'benefits' => ['Acceso libre al área de entrenamiento', 'Valoración inicial']]);
+        $plan(['name' => 'Trimestral', 'slug' => 'trimestral', 'duration_unit' => DurationUnit::Month, 'duration_count' => 3, 'price_cents' => 40000000, 'enrollment_fee_cents' => 5000000, 'max_freeze_days' => 15, 'sort_order' => 2]);
+        $plan(['name' => 'Anual', 'slug' => 'anual', 'duration_unit' => DurationUnit::Year, 'duration_count' => 1, 'price_cents' => 140000000, 'max_freeze_days' => 30, 'sort_order' => 3]);
+        $visits = $plan(['name' => '12 ingresos al mes', 'slug' => '12-ingresos', 'duration_unit' => DurationUnit::Month, 'duration_count' => 1, 'price_cents' => 11000000, 'visit_limit_count' => 12, 'visit_limit_period' => VisitLimitPeriod::Month, 'access_scope' => AccessScope::SelectedLocations, 'sort_order' => 4]);
+        $visits->locations()->sync([$cabecera->id]);
+
+        $seller = User::query()->where('email', 'superadmin@profitlife.test')->firstOrFail();
+        $sell = app(SellMembership::class);
+
+        Member::query()->withoutGlobalScopes()->where('status', MemberStatus::Active)->orderBy('id')->limit(12)->get()
+            ->each(function (Member $member, int $i) use ($sell, $monthly, $visits, $seller, $cabecera, $provenza) {
+                $location = $member->home_location_id === $provenza->id ? $provenza : $cabecera;
+                $chosen = $i % 4 === 3 && $location->is($cabecera) ? $visits : $monthly;
+                $start = BusinessDate::today()->subDays(($i * 3) % 25);
+                $paid = $i % 5 !== 4;
+
+                $sell->execute($member, $chosen, $location, $start, $seller, payment: $paid
+                    ? ['amount_cents' => $chosen->price_cents + ($chosen->enrollment_fee_cents ?? 0), 'method' => PaymentMethod::Cash, 'reference' => null]
+                    : null);
+            });
     }
 
     /**

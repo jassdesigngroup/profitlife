@@ -28,6 +28,10 @@ return [
         'number_padding' => 6,
     ],
 
+    'memberships' => [
+        'grace_days' => (int) env('MEMBERSHIP_GRACE_DAYS', 5),
+    ],
+
     'documents' => [
         'disk' => env('DOCUMENTS_DISK', 'local'),
         'max_kb' => 10240,
