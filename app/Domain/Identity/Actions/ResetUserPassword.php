@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Actions\Fortify;
+namespace App\Domain\Identity\Actions;
 
-use App\Models\User;
+use App\Domain\Identity\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
