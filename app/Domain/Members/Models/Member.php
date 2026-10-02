@@ -28,6 +28,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -45,7 +46,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 #[UsePolicy(MemberPolicy::class)]
 class Member extends Model
 {
-    use HasFactory, HasLocationScope, LogsActivity, SoftDeletes;
+    use HasFactory, HasLocationScope, LogsActivity, Notifiable, SoftDeletes;
 
     public const ADULT_AGE = 18;
 

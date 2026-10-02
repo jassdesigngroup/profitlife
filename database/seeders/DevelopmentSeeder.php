@@ -3,6 +3,9 @@
 namespace Database\Seeders;
 
 use App\Domain\Billing\Enums\PaymentMethod;
+use App\Domain\CheckIns\Actions\RegisterCheckIn;
+use App\Domain\CheckIns\Enums\CheckInMethod;
+use App\Domain\CheckIns\Models\KioskDevice;
 use App\Domain\Consents\Enums\ConsentType;
 use App\Domain\Consents\Models\ConsentTemplate;
 use App\Domain\Identity\Enums\RoleName;
@@ -93,6 +96,7 @@ class DevelopmentSeeder extends Seeder
         $this->members($cabecera, $provenza, $memberUser);
         $this->consentTemplates();
         $this->plansAndMemberships($cabecera, $provenza);
+        $this->checkIns($cabecera, $provenza);
 
         Activity::enableLogging();
     }
@@ -163,6 +167,24 @@ class DevelopmentSeeder extends Seeder
                 $sell->execute($member, $chosen, $location, $start, $seller, payment: $paid
                     ? ['amount_cents' => $chosen->price_cents + ($chosen->enrollment_fee_cents ?? 0), 'method' => PaymentMethod::Cash, 'reference' => null]
                     : null);
+            });
+    }
+
+    /**
+     * Un kiosco por sede (sin vincular) e ingresos de ejemplo de hoy por recepción.
+     */
+    private function checkIns(Location $cabecera, Location $provenza): void
+    {
+        KioskDevice::query()->firstOrCreate(['location_id' => $cabecera->id, 'name' => 'Tablet entrada']);
+        KioskDevice::query()->firstOrCreate(['location_id' => $provenza->id, 'name' => 'Tablet entrada']);
+
+        $reception = User::query()->where('email', 'recepcion@profitlife.test')->firstOrFail();
+        $register = app(RegisterCheckIn::class);
+
+        Member::query()->withoutGlobalScopes()->orderBy('id')->limit(14)->get()
+            ->each(function (Member $member) use ($register, $reception, $cabecera, $provenza) {
+                $location = $member->home_location_id === $provenza->id ? $provenza : $cabecera;
+                $register->execute($location, CheckInMethod::Manual, $member, null, $reception);
             });
     }
 

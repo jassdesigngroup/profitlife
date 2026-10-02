@@ -3,6 +3,7 @@
 use App\Http\Admin\Middleware\EnsureCanAccessAdmin;
 use App\Http\Admin\Middleware\EnsureTwoFactorIsConfirmed;
 use App\Http\Admin\Middleware\EnsureUserIsActive;
+use App\Http\Kiosk\Middleware\AuthenticateKioskDevice;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -26,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'active' => EnsureUserIsActive::class,
             'admin.access' => EnsureCanAccessAdmin::class,
             'two-factor.confirmed' => EnsureTwoFactorIsConfirmed::class,
+            'kiosk.device' => AuthenticateKioskDevice::class,
         ]);
 
         $middleware->redirectGuestsTo(fn () => route('login'));
