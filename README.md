@@ -1,58 +1,79 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# PROFITLIFE
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema web multi-sede para un centro de acondicionamiento físico y fisioterapia.
+Monolito Laravel 13 · PHP 8.3 · MySQL 8 · Blade + Livewire 4 + Tailwind 4 + Alpine.
 
-## About Laravel
+El esquema aprobado está en [`docs/fase-1/erd.md`](docs/fase-1/erd.md).
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Puesta en marcha local
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+Requisitos: PHP 8.3+ (extensiones `intl`, `pdo_mysql`, `mbstring`), Composer 2, Node 20+, MySQL 8.
 
 ```bash
-composer require laravel/boost --dev
+git clone <repo> profitlife && cd profitlife
+composer install
+cp .env.example .env
+php artisan key:generate
 
-php artisan boost:install
+# Base de datos (ajuste usuario y clave en .env si usa otros)
+mysql -uroot -p -e "CREATE DATABASE profitlife CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+  CREATE DATABASE profitlife_testing CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+  CREATE USER 'profitlife'@'localhost' IDENTIFIED BY 'secret';
+  GRANT ALL ON profitlife.* TO 'profitlife'@'localhost';
+  GRANT ALL ON profitlife_testing.* TO 'profitlife'@'localhost';"
+
+php artisan migrate --seed      # roles, permisos, ajustes y datos de ejemplo (APP_ENV=local)
+npm install && npm run build
+
+php artisan serve               # http://localhost:8000
+php artisan queue:work          # en otra terminal: envía las invitaciones y correos
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Correo en local: el `.env.example` apunta a SMTP `127.0.0.1:1025` (p. ej. [Mailpit](https://mailpit.axllent.org),
+interfaz en http://localhost:8025). Para no instalar nada, use `MAIL_MAILER=log` y los correos quedan en `storage/logs/laravel.log`.
 
-## Contributing
+### Usuarios de ejemplo (contraseña `Password123`)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+| Rol | Correo | Sedes |
+|---|---|---|
+| Super Admin | superadmin@profitlife.test | Cabecera, Provenza |
+| Administrador | admin@profitlife.test | Cabecera, Provenza |
+| Gerente de sede | gerente.cabecera@profitlife.test | Cabecera |
+| Gerente de sede | gerente.provenza@profitlife.test | Provenza |
+| Recepción | recepcion@profitlife.test | Cabecera |
+| Fisioterapeuta | fisio@profitlife.test | Cabecera, Provenza |
+| Entrenador | entrenador@profitlife.test | Provenza |
+| Cliente | cliente@profitlife.test | — (sin acceso al panel) |
 
-## Code of Conduct
+Super Admin, Administrador, Gerente de sede y Fisioterapeuta deben configurar la verificación en dos pasos (TOTP)
+en su primer ingreso: el panel los lleva a *Mi perfil → Seguridad*.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Pruebas
 
-## Security Vulnerabilities
+```bash
+vendor/bin/pest          # usa MySQL (base profitlife_testing, ver phpunit.xml)
+vendor/bin/pint          # estilo de código
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Estructura
 
-## License
+```
+app/Domain/{Identity,Locations,Staff,Audit,Notifications,Settings,Shared}/
+    Models · Actions · Enums · Policies · DTOs · Services · Listeners · Notifications
+app/Http/{Admin,Portal,Kiosk,Api}/{Controllers,Requests,Middleware}
+app/Livewire/{Admin,Portal,Kiosk}
+app/Support/            Money, LocationScope (global scope por sede), CurrentLocation (selector de sede)
+resources/views/{admin,portal,kiosk,components}
+routes/{web,admin,portal,kiosk,api}.php
+tests/{Feature/{Admin,Auth,Portal,Kiosk,Api},Unit/Domain}
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Reglas clave:
+
+- **Alcance por sede**: los modelos con sede usan el trait `HasLocationScope`; quien no tiene
+  `locations.view-all` solo ve sus sedes de `location_staff`. Las Policies vuelven a validar cada registro.
+  El selector de sede de la barra superior es solo un filtro de interfaz.
+- **Permisos**: catálogo en `App\Domain\Identity\Enums\Permission` (`recurso.accion`); matriz por defecto en
+  `RolesAndPermissionsSeeder` (idempotente: no pisa cambios hechos desde el panel).
+- **Fechas**: la base guarda UTC; la interfaz muestra la zona de `settings` (`general.timezone`).
+- **Marca, moneda y zona horaria**: en `settings` (grupo `general`), con respaldo en `config/profitlife.php`.

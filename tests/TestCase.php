@@ -18,5 +18,8 @@ abstract class TestCase extends BaseTestCase
         parent::setUp();
 
         $this->app->make(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        // Las pruebas no dependen de los assets compilados.
+        $this->withoutVite();
     }
 }

@@ -33,6 +33,8 @@
                             $subject instanceof \App\Domain\Locations\Models\Location => $subject->name,
                             $subject instanceof \App\Domain\Locations\Models\Room => 'Sala '.$subject->name,
                             $subject instanceof \Spatie\Permission\Models\Role => 'Rol '.(\App\Domain\Identity\Enums\RoleName::tryFrom($subject->name)?->label() ?? $subject->name),
+                            $subject instanceof \App\Domain\Settings\Models\Setting => 'Ajuste '.$subject->group.'.'.$subject->key,
+                            $subject instanceof \App\Domain\Locations\Models\LocationClosure => 'Cierre del '.$subject->closed_on->format('d/m/Y'),
                             $subject !== null => class_basename($subject).' #'.$subject->getKey(),
                             default => '—',
                         };

@@ -139,7 +139,10 @@ class StaffForm extends Component
             'document_number' => ['nullable', 'required_with:document_type', 'string', 'max:30', 'regex:/^[A-Za-z0-9-]+$/'],
             'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\s()-]+$/'],
             'job_title' => ['nullable', 'string', 'max:100'],
-            'professional_license' => ['nullable', 'string', 'max:50'],
+            'professional_license' => [
+                Rule::requiredIf(fn () => in_array(RoleName::Physiotherapist->value, $this->roles, true)),
+                'nullable', 'string', 'max:50',
+            ],
             'calendar_color' => ['nullable', 'hex_color', 'size:7'],
             'is_bookable' => ['boolean'],
             'hired_on' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],

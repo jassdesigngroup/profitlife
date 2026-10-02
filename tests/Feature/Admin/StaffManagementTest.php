@@ -149,3 +149,13 @@ it('un gerente crea staff en su sede con un rol operativo', function () {
     $user = User::query()->where('email', 'pedro@example.com')->sole();
     expect(staffOf($user)->locationIds())->toBe([$this->a->id]);
 });
+
+it('exige la tarjeta profesional al fisioterapeuta', function () {
+    Livewire::actingAs($this->admin)->test(StaffForm::class)
+        ->set('first_name', 'Fisio')->set('last_name', 'Sin Tarjeta')
+        ->set('email', 'fisio.nueva@example.com')
+        ->set('roles', ['physiotherapist'])
+        ->set('locationIds', [(string) $this->a->id])
+        ->call('save')
+        ->assertHasErrors(['professional_license' => 'required']);
+});
