@@ -705,12 +705,12 @@ payments
   location_id             FK locations
   amount_cents            BIGINT
   currency                CHAR(3)
-  method                  VARCHAR(30)  -- cash | card_terminal | transfer | nequi | pse | gateway
+  method                  VARCHAR(30)  -- cash | card_terminal | transfer | bre_b | nequi | pse | gateway
   status                  VARCHAR(30)  -- pending | paid | failed | refunded | cancelled
   gateway                 VARCHAR(30) NULL
   external_transaction_id VARCHAR(120) NULL
   reference               VARCHAR(100) NULL   -- n.º de comprobante o voucher
-  payment_method_id       FK payment_methods NULL
+  payment_method_id       FK payment_methods NULL   -- se añade en la Fase 10, junto con payment_methods
   paid_at                 DATETIME NULL
   received_by             FK users NULL
   meta                    JSON NULL           -- respuesta de la pasarela
@@ -742,7 +742,9 @@ payment_methods                         -- Fase 10; solo el token de la pasarela
   ts, sd
 ```
 
-La facturación electrónica ante la DIAN no está modelada: si PROFITLIFE la requiere, se añade en la Fase 10 una tabla `fiscal_documents` enlazada a `invoices`, alimentada por un proveedor tecnológico autorizado.
+Los comprobantes (`invoices`) son documentos internos, no factura electrónica. Los días de gracia para pagar una membresía se guardan en `settings` (`memberships.grace_days`, global con ajuste por sede). La renovación automática crea el periodo siguiente y su comprobante pendiente; el cobro automático llegará con la pasarela (Bold o ePayco) en la Fase 10.
+
+La facturación electrónica ante la DIAN no está modelada: si PROFITLIFE la requiere, se añade en la Fase 10 una tabla `fiscal_documents` enlazada a `invoices`, alimentada por un proveedor tecnológico autorizado (previsto: Siigo).
 
 ## 12. Tablas transversales
 
