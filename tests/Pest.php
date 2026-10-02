@@ -4,7 +4,12 @@ use App\Domain\Identity\Enums\RoleName;
 use App\Domain\Identity\Models\User;
 use App\Domain\Locations\Models\Location;
 use App\Domain\Members\Models\Member;
+use App\Domain\Memberships\Actions\SellMembership;
+use App\Domain\Memberships\Models\Membership;
+use App\Domain\Memberships\Models\MembershipPlan;
 use App\Domain\Staff\Models\Staff;
+use App\Support\BusinessDate;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -43,4 +48,18 @@ function staffOf(User $user): Staff
 function memberAt(Location $location, array $attributes = []): Member
 {
     return Member::factory()->create(['home_location_id' => $location->id] + $attributes);
+}
+
+function planFor(array $attributes = []): MembershipPlan
+{
+    return MembershipPlan::factory()->create($attributes);
+}
+
+function sellTo(Member $member, MembershipPlan $plan, Location $location, User $actor, ?string $startsOn = null, ?array $payment = null, int $discount = 0, ?string $reason = null): Membership
+{
+    return app(SellMembership::class)->execute(
+        $member, $plan, $location,
+        $startsOn ? CarbonImmutable::createFromFormat('!Y-m-d', $startsOn, 'UTC') : BusinessDate::today(),
+        $actor, $discount, $reason, $payment,
+    );
 }

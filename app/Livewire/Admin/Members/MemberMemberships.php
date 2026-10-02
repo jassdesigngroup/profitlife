@@ -30,7 +30,10 @@ use Livewire\Component;
 
 class MemberMemberships extends Component
 {
-    use InteractsWithToasts, ParsesMoney, ResolvesMember;
+    use InteractsWithToasts, ParsesMoney;
+    use ResolvesMember {
+        mount as resolveMember;
+    }
 
     // Venta
     public bool $showSell = false;
@@ -70,6 +73,12 @@ class MemberMemberships extends Component
     public bool $showStatus = false;
 
     public string $statusReason = '';
+
+    public function mount(int $memberId): void
+    {
+        $this->resolveMember($memberId);
+        $this->authorize('viewAny', Membership::class);
+    }
 
     public function openSell(): void
     {

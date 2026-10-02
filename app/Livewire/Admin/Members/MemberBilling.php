@@ -23,7 +23,10 @@ use Livewire\Component;
  */
 class MemberBilling extends Component
 {
-    use InteractsWithToasts, ParsesMoney, ResolvesMember;
+    use InteractsWithToasts, ParsesMoney;
+    use ResolvesMember {
+        mount as resolveMember;
+    }
 
     #[Locked]
     public ?int $invoiceId = null;
@@ -42,6 +45,12 @@ class MemberBilling extends Component
     public bool $showVoid = false;
 
     public string $voidReason = '';
+
+    public function mount(int $memberId): void
+    {
+        $this->resolveMember($memberId);
+        $this->authorize('viewAny', Invoice::class);
+    }
 
     #[On('member-billing-changed')]
     public function refreshBilling(): void

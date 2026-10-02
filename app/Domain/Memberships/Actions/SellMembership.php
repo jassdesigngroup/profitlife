@@ -98,7 +98,9 @@ class SellMembership
                 $purchaseLocation,
                 $lines,
                 $plan->currency,
-                BusinessDate::today()->addDays($this->settings->graceDays($purchaseLocation->id)),
+                // Vence tras la gracia contada desde hoy o desde el inicio, lo que sea posterior.
+                ($startsOn->greaterThan(BusinessDate::today()) ? $startsOn : BusinessDate::today())
+                    ->addDays($this->settings->graceDays($purchaseLocation->id)),
                 $actor,
                 $discountCents > 0 ? "Descuento: {$discountReason}" : null,
             );
