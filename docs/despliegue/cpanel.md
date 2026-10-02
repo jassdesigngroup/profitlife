@@ -75,14 +75,8 @@ Si `composer` no existe en el servidor: `curl -sS https://getcomposer.org/instal
 
 ### Assets (CSS, JS y fuentes)
 
-Los hostings cPanel casi nunca tienen Node. Compílelos en su equipo y suba solo la carpeta resultante:
-
-```bash
-# en su equipo, dentro del proyecto
-npm ci && npm run build
-# subir la carpeta public/build completa a /home/profitlife/app.profit-life.co/public/build
-# (File Manager → Upload un .zip y Extract, o scp/rsync)
-```
+Los assets compilados (`public/build`) vienen incluidos en el repositorio, porque el hosting no tiene Node:
+`git clone` y `git pull` los traen listos. No hay que compilar nada en el servidor.
 
 ## 5. Archivo `.env` de producción
 
@@ -171,7 +165,6 @@ php artisan optimize
 php artisan up
 ```
 
-Y vuelva a subir `public/build` si cambiaron estilos o scripts.
 
 ## 9. Comprobaciones finales
 

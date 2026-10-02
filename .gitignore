@@ -14,7 +14,7 @@
 /.zed
 /auth.json
 /node_modules
-/public/build
+# /public/build se versiona: el hosting (cPanel) no tiene Node. Recompilar con `npm run build` antes de cada commit que toque CSS/JS.
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage
