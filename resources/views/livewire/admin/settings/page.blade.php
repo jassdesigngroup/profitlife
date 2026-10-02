@@ -24,6 +24,9 @@
         <x-card title="Check-in: ingresos repetidos" description="Si el cliente vuelve a marcar dentro de estos minutos, se le deja pasar pero no se registra como un ingreso nuevo. 0 = desactivado.">
             <x-input label="Minutos" type="number" min="0" max="720" wire:model="duplicateMinutes" class="sm:w-48" required />
         </x-card>
+        <x-card title="Citas: cancelación sin penalidad" description="Horas antes de la cita hasta las que se puede cancelar devolviendo la sesión. Después, la cancelación o la inasistencia descuentan la sesión.">
+            <x-input label="Horas" type="number" min="0" max="168" wire:model="cancellationHours" class="sm:w-48" required />
+        </x-card>
         <div class="flex justify-end">
             <x-button type="submit" icon="check">Guardar ajustes</x-button>
         </div>

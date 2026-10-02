@@ -4,6 +4,7 @@ namespace App\Domain\Appointments\Services;
 
 use App\Domain\Appointments\Models\Appointment;
 use App\Domain\Appointments\Models\Service;
+use App\Domain\Locations\Enums\RoomType;
 use App\Domain\Locations\Models\Location;
 use App\Domain\Locations\Models\LocationClosure;
 use App\Domain\Locations\Models\Room;
@@ -156,7 +157,8 @@ class Availability
     }
 
     /**
-     * Una sala activa de la sede libre en el bloque (la pedida, si se indica).
+     * Un consultorio activo de la sede libre en el bloque (el pedido, si se
+     * indica). Las salas grupales y zonas no se asignan a citas individuales.
      */
     public function freeRoom(Location $location, CarbonImmutable $start, CarbonImmutable $blockEnd, ?int $roomId = null, ?int $ignoreId = null): ?Room
     {
@@ -164,6 +166,7 @@ class Availability
             ->whereNull('deleted_at')
             ->where('location_id', $location->id)
             ->where('is_active', true)
+            ->where('type', RoomType::ConsultingRoom)
             ->when($roomId !== null, fn ($q) => $q->where('id', $roomId))
             ->orderBy('name')
             ->get();

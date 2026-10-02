@@ -2,9 +2,11 @@
 
 namespace App\Livewire\Admin\Plans;
 
+use App\Domain\Appointments\Models\Service;
 use App\Domain\Locations\Models\Location;
 use App\Domain\Memberships\Enums\AccessScope;
 use App\Domain\Memberships\Enums\DurationUnit;
+use App\Domain\Memberships\Enums\SessionPeriod;
 use App\Domain\Memberships\Enums\VisitLimitPeriod;
 use App\Domain\Memberships\Models\MembershipPlan;
 use App\Domain\Settings\Services\Settings;
@@ -59,6 +61,11 @@ class PlanForm extends Component
 
     public bool $is_active = true;
 
+    public bool $includes_gym_access = true;
+
+    /** @var list<array{service_id: string, sessions: string, period: string}> sesiones incluidas ('' = ilimitadas) */
+    public array $sessions = [];
+
     public int|string $sort_order = 0;
 
     public function mount(?MembershipPlan $plan = null): void
@@ -83,6 +90,12 @@ class PlanForm extends Component
             $this->benefits = implode("\n", $plan->benefits ?? []);
             $this->is_active = $plan->is_active;
             $this->sort_order = $plan->sort_order;
+            $this->includes_gym_access = (bool) ($plan->includes_gym_access ?? true);
+            $this->sessions = $plan->planServices->map(fn ($s) => [
+                'service_id' => (string) $s->service_id,
+                'sessions' => $s->sessions_included === null ? '' : (string) $s->sessions_included,
+                'period' => $s->period->value,
+            ])->all();
 
             return;
         }
@@ -114,6 +127,11 @@ class PlanForm extends Component
             'benefits' => ['nullable', 'string', 'max:2000'],
             'is_active' => ['boolean'],
             'sort_order' => ['required', 'integer', 'min:0', 'max:999'],
+            'includes_gym_access' => ['boolean'],
+            'sessions' => ['array', 'max:20'],
+            'sessions.*.service_id' => ['required', 'distinct', Rule::exists('services', 'id')->whereNull('deleted_at')],
+            'sessions.*.sessions' => ['nullable', 'integer', 'min:1', 'max:999'],
+            'sessions.*.period' => ['required', Rule::enum(SessionPeriod::class)],
         ];
     }
 
@@ -126,6 +144,7 @@ class PlanForm extends Component
             'name' => 'nombre', 'duration_count' => 'duración', 'price' => 'precio', 'enrollment_fee' => 'matrícula',
             'tax_percent' => 'IVA', 'locationIds' => 'sedes', 'visit_limit_count' => 'número de ingresos',
             'max_freeze_days' => 'días de congelación', 'sort_order' => 'orden',
+            'sessions.*.service_id' => 'servicio', 'sessions.*.sessions' => 'sesiones', 'sessions.*.period' => 'periodo',
         ];
     }
 
@@ -161,6 +180,7 @@ class PlanForm extends Component
             'benefits' => array_values(array_filter(array_map('trim', explode("\n", (string) $data['benefits'])))),
             'is_active' => (bool) $data['is_active'],
             'sort_order' => (int) $data['sort_order'],
+            'includes_gym_access' => (bool) $data['includes_gym_access'],
         ];
 
         DB::transaction(function () use (&$plan, $attributes, $data, $settings) {
@@ -174,10 +194,31 @@ class PlanForm extends Component
             }
 
             $plan->locations()->sync($data['access_scope'] === AccessScope::SelectedLocations->value ? array_map('intval', $data['locationIds']) : []);
+
+            // Las sesiones nuevas aplican a las ventas y renovaciones siguientes.
+            $plan->planServices()->delete();
+            foreach ($data['sessions'] ?? [] as $row) {
+                $plan->planServices()->create([
+                    'service_id' => (int) $row['service_id'],
+                    'sessions_included' => $row['sessions'] === '' || $row['sessions'] === null ? null : (int) $row['sessions'],
+                    'period' => $row['period'],
+                ]);
+            }
         });
 
         session()->flash('success', 'Plan guardado.');
         $this->redirectRoute('admin.plans.index', navigate: true);
+    }
+
+    public function addSession(): void
+    {
+        $this->sessions[] = ['service_id' => '', 'sessions' => '4', 'period' => SessionPeriod::PerTerm->value];
+    }
+
+    public function removeSession(int $index): void
+    {
+        unset($this->sessions[$index]);
+        $this->sessions = array_values($this->sessions);
     }
 
     public function render(): View
@@ -187,6 +228,8 @@ class PlanForm extends Component
             'units' => DurationUnit::options(),
             'scopes' => AccessScope::options(),
             'periods' => VisitLimitPeriod::options(),
+            'sessionPeriods' => SessionPeriod::options(),
+            'services' => Service::query()->orderBy('name')->pluck('name', 'id')->all(),
             'locations' => Location::query()->withoutGlobalScopes()->whereNull('deleted_at')->orderBy('name')->get(['id', 'name']),
         ])->title($this->planId ? 'Editar plan' : 'Nuevo plan');
     }

@@ -4,7 +4,7 @@
     $cards = [
         ['label' => 'Asistencias de hoy', 'icon' => 'enter', 'value' => $kpis['checkins'], 'phase' => null, 'route' => 'admin.check-ins.index'],
         ['label' => 'Membresías activas', 'icon' => 'heart', 'value' => $kpis['memberships'], 'phase' => null, 'route' => 'admin.memberships.index'],
-        ['label' => 'Citas de hoy', 'icon' => 'calendar', 'value' => null, 'phase' => 'Fase 6'],
+        ['label' => 'Citas de hoy', 'icon' => 'calendar', 'value' => $kpis['appointments'], 'phase' => null, 'route' => 'admin.appointments.index'],
         ['label' => 'Ingresos del mes', 'icon' => 'chart', 'value' => $kpis['income'], 'phase' => null, 'route' => 'admin.payments.index'],
     ];
 @endphp

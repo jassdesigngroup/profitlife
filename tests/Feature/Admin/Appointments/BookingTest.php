@@ -9,6 +9,7 @@ use App\Domain\Appointments\Notifications\AppointmentNotification;
 use App\Domain\Appointments\Services\Availability;
 use App\Domain\Billing\Enums\PaymentMethod;
 use App\Domain\Identity\Enums\RoleName;
+use App\Domain\Locations\Enums\RoomType;
 use App\Domain\Locations\Models\Location;
 use App\Domain\Locations\Models\LocationClosure;
 use App\Domain\Locations\Models\Room;
@@ -129,17 +130,18 @@ it('rechaza profesionales que no prestan el servicio, sedes sin el servicio, pas
         ->toThrow(ValidationException::class, 'no está activo');
 });
 
-it('asigna una sala libre cuando el servicio la exige', function () {
+it('asigna un consultorio libre (no zonas) cuando el servicio lo exige', function () {
     $service = serviceAt([$this->location], ['requires_room' => true, 'duration_minutes' => 60]);
     $other = professional($this->location, [$service], '08:00', '12:00');
     staffOf($this->physio)->services()->attach($service->id);
-    $room = Room::factory()->create(['location_id' => $this->location->id, 'name' => 'Consultorio 1']);
+    Room::factory()->create(['location_id' => $this->location->id, 'name' => 'Zona de pesas', 'type' => RoomType::Zone]);
+    $room = Room::factory()->create(['location_id' => $this->location->id, 'name' => 'Consultorio 1', 'type' => RoomType::ConsultingRoom]);
 
     $first = book($this->member, $service, $this->location, $this->physio, '2026-10-05 09:00', $this->reception);
     expect($first->room_id)->toBe($room->id);
 
     expect(fn () => book(memberAt($this->location), $service, $this->location, $other, '2026-10-05 09:30', $this->reception))
-        ->toThrow(ValidationException::class, 'No hay salas libres');
+        ->toThrow(ValidationException::class, 'No hay consultorios libres');
 });
 
 it('lista los horarios libres de 15 en 15 minutos', function () {

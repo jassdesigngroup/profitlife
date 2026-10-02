@@ -65,6 +65,9 @@
                         <td class="px-6 py-4">
                             <div class="flex justify-end gap-1">
                                 @can('update', $member)
+                                    @if ($member->is_bookable)
+                                        <x-button variant="ghost" size="sm" :href="route('admin.staff.availability', $member)" wire:navigate>Disponibilidad</x-button>
+                                    @endif
                                     <x-button variant="ghost" size="sm" :href="route('admin.staff.edit', $member)" wire:navigate>Editar</x-button>
                                 @endcan
                                 @if ($pending)

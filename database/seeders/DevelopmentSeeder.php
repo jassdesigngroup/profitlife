@@ -2,6 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Domain\Appointments\Actions\BookAppointment;
+use App\Domain\Appointments\Enums\ServiceCategory;
+use App\Domain\Appointments\Models\Service;
 use App\Domain\Billing\Enums\PaymentMethod;
 use App\Domain\CheckIns\Actions\RegisterCheckIn;
 use App\Domain\CheckIns\Enums\CheckInMethod;
@@ -20,12 +23,15 @@ use App\Domain\Members\Services\MemberNumber;
 use App\Domain\Memberships\Actions\SellMembership;
 use App\Domain\Memberships\Enums\AccessScope;
 use App\Domain\Memberships\Enums\DurationUnit;
+use App\Domain\Memberships\Enums\SessionPeriod;
 use App\Domain\Memberships\Enums\VisitLimitPeriod;
 use App\Domain\Memberships\Models\MembershipPlan;
 use App\Domain\Shared\Enums\DocumentType;
 use App\Domain\Staff\Enums\StaffStatus;
 use App\Domain\Staff\Models\Staff;
+use App\Domain\Staff\Models\StaffSchedule;
 use App\Support\BusinessDate;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Activitylog\Facades\Activity;
@@ -97,6 +103,7 @@ class DevelopmentSeeder extends Seeder
         $this->consentTemplates();
         $this->plansAndMemberships($cabecera, $provenza);
         $this->checkIns($cabecera, $provenza);
+        $this->appointments($cabecera, $provenza);
 
         Activity::enableLogging();
     }
@@ -168,6 +175,71 @@ class DevelopmentSeeder extends Seeder
                     ? ['amount_cents' => $chosen->price_cents + ($chosen->enrollment_fee_cents ?? 0), 'method' => PaymentMethod::Cash, 'reference' => null]
                     : null);
             });
+    }
+
+    /**
+     * Servicios, disponibilidad de los profesionales, un plan con sesiones,
+     * un paquete sin gimnasio y citas de ejemplo para hoy y mañana.
+     */
+    private function appointments(Location $cabecera, Location $provenza): void
+    {
+        $service = fn (array $attributes) => Service::query()->create($attributes + [
+            'currency' => 'COP', 'tax_rate_bps' => 0, 'buffer_minutes' => 0, 'is_active' => true,
+        ]);
+
+        $physio = $service(['name' => 'Fisioterapia', 'slug' => 'fisioterapia', 'category' => ServiceCategory::Physiotherapy, 'duration_minutes' => 60, 'buffer_minutes' => 10, 'price_cents' => 9000000, 'requires_room' => true, 'is_clinical' => true, 'color' => '#FD540D']);
+        $training = $service(['name' => 'Entrenamiento personal', 'slug' => 'entrenamiento-personal', 'category' => ServiceCategory::PersonalTraining, 'duration_minutes' => 60, 'price_cents' => 7000000, 'color' => '#1D4ED8']);
+        $assessment = $service(['name' => 'Valoración física', 'slug' => 'valoracion-fisica', 'category' => ServiceCategory::Assessment, 'duration_minutes' => 45, 'price_cents' => 5000000, 'color' => '#15803D']);
+
+        foreach ([$physio, $training, $assessment] as $s) {
+            $s->locations()->sync([$cabecera->id => ['is_active' => true], $provenza->id => ['is_active' => true]]);
+        }
+        $physio->locations()->updateExistingPivot($provenza->id, ['price_cents' => 8500000]);
+
+        $fisio = Staff::query()->withoutGlobalScopes()->whereHas('user', fn ($q) => $q->where('email', 'fisio@profitlife.test'))->firstOrFail();
+        $trainer = Staff::query()->withoutGlobalScopes()->whereHas('user', fn ($q) => $q->where('email', 'entrenador@profitlife.test'))->firstOrFail();
+        $fisio->services()->sync([$physio->id, $assessment->id]);
+        $trainer->services()->sync([$training->id, $assessment->id]);
+
+        foreach (range(1, 5) as $day) {
+            StaffSchedule::query()->create(['staff_id' => $fisio->id, 'location_id' => $cabecera->id, 'day_of_week' => $day, 'starts_at' => '07:00:00', 'ends_at' => '12:00:00']);
+            StaffSchedule::query()->create(['staff_id' => $fisio->id, 'location_id' => $provenza->id, 'day_of_week' => $day, 'starts_at' => '14:00:00', 'ends_at' => '19:00:00']);
+            StaffSchedule::query()->create(['staff_id' => $trainer->id, 'location_id' => $provenza->id, 'day_of_week' => $day, 'starts_at' => '06:00:00', 'ends_at' => '13:00:00']);
+        }
+        StaffSchedule::query()->create(['staff_id' => $trainer->id, 'location_id' => $provenza->id, 'day_of_week' => 6, 'starts_at' => '07:00:00', 'ends_at' => '11:00:00']);
+
+        $withSessions = MembershipPlan::query()->create([
+            'name' => 'Mensual + 4 fisioterapias', 'slug' => 'mensual-fisioterapias', 'duration_unit' => DurationUnit::Month, 'duration_count' => 1,
+            'billing_unit' => DurationUnit::Month, 'billing_count' => 1, 'price_cents' => 42000000, 'currency' => 'COP',
+            'access_scope' => AccessScope::AllLocations, 'max_freeze_days' => 7, 'sort_order' => 5, 'is_active' => true,
+        ]);
+        $withSessions->planServices()->create(['service_id' => $physio->id, 'sessions_included' => 4, 'period' => SessionPeriod::PerBillingPeriod]);
+
+        $package = MembershipPlan::query()->create([
+            'name' => 'Paquete 10 fisioterapias', 'slug' => 'paquete-10-fisioterapias', 'duration_unit' => DurationUnit::Month, 'duration_count' => 3,
+            'billing_unit' => DurationUnit::Month, 'billing_count' => 3, 'price_cents' => 75000000, 'currency' => 'COP',
+            'access_scope' => AccessScope::AllLocations, 'includes_gym_access' => false, 'sort_order' => 6, 'is_active' => true,
+        ]);
+        $package->planServices()->create(['service_id' => $physio->id, 'sessions_included' => 10, 'period' => SessionPeriod::PerTerm]);
+
+        $seller = User::query()->where('email', 'superadmin@profitlife.test')->firstOrFail();
+        $members = Member::query()->withoutGlobalScopes()->where('status', MemberStatus::Active)->orderBy('id')->skip(12)->limit(3)->get();
+        if ($members->count() < 2) {
+            return;
+        }
+
+        app(SellMembership::class)->execute($members[0], $package, $cabecera, BusinessDate::today(), $seller, payment: ['amount_cents' => $package->price_cents, 'method' => PaymentMethod::Transfer, 'reference' => null]);
+
+        // Citas en el próximo día hábil (para que la agenda de ejemplo no quede vacía).
+        $day = BusinessDate::today()->addDay();
+        while ((int) $day->format('N') > 5) {
+            $day = $day->addDay();
+        }
+        $at = fn (string $time) => CarbonImmutable::parse($day->toDateString().' '.$time, $cabecera->timezone);
+        $book = app(BookAppointment::class);
+        $book->execute($members[0], $physio->fresh('locations'), $cabecera, $fisio, $at('08:00')->utc(), $seller, notify: false);
+        $book->execute($members[1], $physio->fresh('locations'), $cabecera, $fisio, $at('10:00')->utc(), $seller, notify: false);
+        $book->execute($members[1], $training->fresh('locations'), $provenza, $trainer, CarbonImmutable::parse($day->toDateString().' 07:00', $provenza->timezone)->utc(), $seller, notify: false);
     }
 
     /**

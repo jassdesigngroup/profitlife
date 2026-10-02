@@ -90,7 +90,7 @@ class BookAppointment
                 $room = $this->availability->freeRoom($location, $startsAt, $startsAt->addMinutes($service->blockMinutes()), $roomId, $ignore);
 
                 if ($room === null) {
-                    throw ValidationException::withMessages(['roomId' => $roomId ? 'La sala elegida está ocupada en ese horario.' : 'No hay salas libres en ese horario.']);
+                    throw ValidationException::withMessages(['roomId' => $roomId ? 'El consultorio elegido está ocupado en ese horario.' : 'No hay consultorios libres en ese horario.']);
                 }
             }
 

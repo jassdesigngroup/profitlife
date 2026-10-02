@@ -21,8 +21,9 @@ class SaveStaffSchedules
     /**
      * @param  list<array{location_id: int, day_of_week: int, starts_at: string, ends_at: string}>  $rows
      * @param  list<int>  $editableLocationIds
+     * @param  list<array{location_id: int, day_of_week: int, starts_at: string, ends_at: string}>  $kept  franjas de otras sedes que se conservan
      */
-    public function execute(Staff $staff, array $rows, array $editableLocationIds, User $actor): void
+    public function execute(Staff $staff, array $rows, array $editableLocationIds, User $actor, array $kept = []): void
     {
         $staffLocations = $staff->locationIds();
 
@@ -37,7 +38,7 @@ class SaveStaffSchedules
         }
 
         // Una persona no puede estar en dos franjas a la vez (ni en dos sedes).
-        $byDay = collect($rows)->groupBy('day_of_week');
+        $byDay = collect([...$rows, ...$kept])->groupBy('day_of_week');
         foreach ($byDay as $day => $blocks) {
             $sorted = $blocks->sortBy('starts_at')->values();
             for ($i = 1; $i < $sorted->count(); $i++) {
