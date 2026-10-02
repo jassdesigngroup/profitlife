@@ -5,21 +5,25 @@
 
     RewriteEngine On
 
-    # Handle Authorization Header
+    # Cabecera de autorización (API / Sanctum)
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-    # Handle X-XSRF-Token Header
-    RewriteCond %{HTTP:x-xsrf-token} .
-    RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
-
-    # Redirect Trailing Slashes If Not A Folder...
+    # Redirige barras finales si no es una carpeta
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # Send Requests To Front Controller...
+    # Todo lo que no sea un archivo real va al controlador frontal
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# Nunca servir archivos ocultos (.env, .git...) aunque se suban por error a public/
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+<Files ".htaccess">
+    Require all denied
+</Files>

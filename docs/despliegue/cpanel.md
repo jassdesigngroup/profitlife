@@ -1,0 +1,157 @@
+# Despliegue en cPanel — app.profit-life.co
+
+Guía para publicar PROFITLIFE en un hosting cPanel con el subdominio `app.profit-life.co`.
+`USUARIO` es su usuario de cPanel (carpeta `/home/USUARIO`).
+
+## 0. Requisitos del hosting (verificar antes)
+
+| Requisito | Dónde se ve en cPanel | Nota |
+|---|---|---|
+| PHP 8.3 o superior | *MultiPHP Manager* | Laravel 13 no funciona con 8.2 o menos. |
+| Extensiones `intl`, `pdo_mysql`, `mbstring`, `bcmath`, `fileinfo`, `sodium`, `openssl`, `gd`, `zip` | *Select PHP Version → Extensions* | `intl` es obligatoria (formato de moneda y fechas). |
+| MySQL 8 | *MySQL Databases* (abajo indica la versión del servidor) | Si el servidor es **MariaDB**, avíseme antes de continuar: el sistema se probó en MySQL 8. |
+| Acceso SSH o *Terminal* | *Terminal* o *SSH Access* | Necesario para `composer` y `php artisan`. |
+| Cron jobs | *Cron Jobs* | Para la cola de correos. |
+
+## 1. Subdominio y SSL
+
+1. *Domains → Create A New Domain*: `app.profit-life.co`.
+2. Desmarque "Share document root" y escriba como raíz: **`profitlife/public`**
+   (la aplicación queda en `/home/USUARIO/profitlife` y solo `public/` es accesible desde la web).
+3. *SSL/TLS Status → Run AutoSSL* para emitir el certificado del subdominio.
+
+## 2. Base de datos
+
+En *MySQL Databases*:
+
+1. Crear la base `USUARIO_profitlife`.
+2. Crear el usuario `USUARIO_profitlife` con una contraseña fuerte.
+3. Añadir el usuario a la base con **ALL PRIVILEGES**.
+
+## 3. Correo de envío
+
+1. *Email Accounts*: crear `no-responder@profit-life.co`.
+2. *Email Deliverability*: comprobar que SPF y DKIM de `profit-life.co` estén en verde (si no, los correos de invitación llegarán a spam).
+3. *Connect Devices* muestra el servidor SMTP (normalmente `mail.profit-life.co`, puerto 465, SSL).
+
+## 4. Subir el código
+
+Por Terminal/SSH:
+
+```bash
+cd ~
+git clone https://github.com/jassdesigngroup/profitlife.git profitlife
+cd profitlife
+git checkout main      # cuando el PR de la Fase 2 esté aprobado y fusionado
+composer install --no-dev --optimize-autoloader
+```
+
+Si el repositorio es privado, cree un *token* de GitHub de solo lectura o una *deploy key* para clonar.
+Si `composer` no existe en el servidor: `curl -sS https://getcomposer.org/installer | php` y use `php composer.phar`.
+
+### Assets (CSS, JS y fuentes)
+
+Los hostings cPanel casi nunca tienen Node. Compílelos en su equipo y suba solo la carpeta resultante:
+
+```bash
+# en su equipo, dentro del proyecto
+npm ci && npm run build
+# subir la carpeta public/build completa a /home/USUARIO/profitlife/public/build
+# (File Manager → Upload un .zip y Extract, o scp/rsync)
+```
+
+## 5. Archivo `.env` de producción
+
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+Edite `.env` (File Manager o `nano .env`) con estos valores:
+
+```dotenv
+APP_NAME="PROFITLIFE"
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://app.profit-life.co
+
+APP_DISPLAY_TIMEZONE=America/Bogota
+APP_LOCALE=es_CO
+APP_CURRENCY=COP
+
+LOG_STACK=daily
+LOG_LEVEL=warning
+
+DB_CONNECTION=mysql
+DB_HOST=localhost
+DB_PORT=3306
+DB_DATABASE=USUARIO_profitlife
+DB_USERNAME=USUARIO_profitlife
+DB_PASSWORD="la-contraseña-de-la-base"
+
+SESSION_DRIVER=database
+SESSION_ENCRYPT=true
+SESSION_SECURE_COOKIE=true
+SESSION_DOMAIN=app.profit-life.co
+
+QUEUE_CONNECTION=database
+CACHE_STORE=database
+
+MAIL_MAILER=smtp
+MAIL_SCHEME=smtps
+MAIL_HOST=mail.profit-life.co
+MAIL_PORT=465
+MAIL_USERNAME=no-responder@profit-life.co
+MAIL_PASSWORD="la-contraseña-del-correo"
+MAIL_FROM_ADDRESS="no-responder@profit-life.co"
+MAIL_FROM_NAME="PROFITLIFE"
+```
+
+`APP_DEBUG` debe quedar en `false`: con `true` un error mostraría credenciales en pantalla.
+
+## 6. Instalar
+
+```bash
+php artisan migrate --force
+php artisan db:seed --force                 # roles, permisos y ajustes (sin datos de ejemplo)
+php artisan profitlife:create-super-admin   # pide nombres, correo y contraseña
+php artisan storage:link
+php artisan optimize                        # cachea configuración, rutas y vistas
+chmod -R 775 storage bootstrap/cache
+```
+
+Luego entre a `https://app.profit-life.co`, configure la verificación en dos pasos y cree desde el panel
+las sedes, sus horarios y salas, e invite al equipo.
+
+## 7. Cron (cola de correos y tareas)
+
+En *Cron Jobs*, añada una tarea **cada minuto** (`* * * * *`):
+
+```bash
+cd /home/USUARIO/profitlife && /usr/local/bin/php artisan schedule:run >> /dev/null 2>&1
+```
+
+La ruta de PHP puede variar; compruébela en Terminal con `which php` (debe ser la versión 8.3, p. ej.
+`/opt/cpanel/ea-php83/root/usr/bin/php`). Sin este cron las invitaciones y correos de recuperación no se envían.
+
+## 8. Actualizar a una nueva versión
+
+```bash
+cd ~/profitlife
+php artisan down
+git pull origin main
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+php artisan db:seed --force     # añade permisos nuevos sin pisar los cambios hechos en el panel
+php artisan optimize
+php artisan up
+```
+
+Y vuelva a subir `public/build` si cambiaron estilos o scripts.
+
+## 9. Comprobaciones finales
+
+- `https://app.profit-life.co/up` responde 200.
+- `https://app.profit-life.co/.env` responde 403/404 (nunca el contenido).
+- Invitar a un usuario de prueba y verificar que el correo llega en menos de 2 minutos.
+- Copias de seguridad: *Backup* de cPanel incluye la base de datos; programe una copia diaria.
