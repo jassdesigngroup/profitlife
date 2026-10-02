@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Admin;
 
+use App\Domain\Appointments\Enums\AppointmentStatus;
+use App\Domain\Appointments\Models\Appointment;
 use App\Domain\Billing\Enums\PaymentStatus;
 use App\Domain\Billing\Models\Invoice;
 use App\Domain\Billing\Models\Payment;
@@ -26,8 +28,7 @@ use Livewire\Component;
 use Spatie\Activitylog\Models\Activity;
 
 /**
- * Inicio del panel. Los indicadores de módulos futuros (citas) son
- * tarjetas de marcador hasta sus fases.
+ * Inicio del panel con los indicadores operativos de las sedes del usuario.
  */
 #[Title('Inicio')]
 class Dashboard extends Component
@@ -63,6 +64,12 @@ class Dashboard extends Component
         $today = now($tz);
 
         $kpis = [
+            'appointments' => $user->can(Permission::AppointmentsView->value)
+                ? Appointment::query()->inLocation($locationId)->visibleTo($user)
+                    ->whereIn('status', [AppointmentStatus::Pending, AppointmentStatus::Confirmed, AppointmentStatus::Completed])
+                    ->whereBetween('starts_at', [$today->startOfDay()->utc(), $today->endOfDay()->utc()])
+                    ->count()
+                : null,
             'checkins' => $user->can(Permission::CheckInsView->value)
                 ? CheckIn::query()->inLocation($locationId)->accepted()
                     ->whereBetween('checked_in_at', [$today->startOfDay()->utc(), $today->endOfDay()->utc()])

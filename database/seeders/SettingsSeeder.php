@@ -30,6 +30,10 @@ class SettingsSeeder extends Seeder
             $settings->set('memberships', 'grace_days', config('profitlife.memberships.grace_days'));
         }
 
+        if ($settings->get('appointments', 'cancellation_hours') === null) {
+            $settings->set('appointments', 'cancellation_hours', config('profitlife.appointments.cancellation_hours'));
+        }
+
         if ($settings->get('check_ins', 'duplicate_minutes') === null) {
             $settings->set('check_ins', 'duplicate_minutes', config('profitlife.check_ins.duplicate_minutes'));
         }

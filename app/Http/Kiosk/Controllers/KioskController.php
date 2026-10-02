@@ -90,6 +90,12 @@ class KioskController
     {
         $notices = [];
 
+        if ($outcome->appointment !== null) {
+            $appointment = $outcome->appointment;
+            $time = $appointment->starts_at->setTimezone($appointment->location?->timezone ?: 'UTC')->format('g:i a');
+            $notices[] = "Tienes cita de {$appointment->service->name} a las {$time}.";
+        }
+
         if ($outcome->visitsLeft !== null) {
             $notices[] = $outcome->visitsLeft === 0
                 ? 'Este fue tu último ingreso disponible del periodo.'

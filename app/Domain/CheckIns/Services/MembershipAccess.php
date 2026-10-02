@@ -26,6 +26,8 @@ class MembershipAccess
             ->whereIn('status', MembershipStatus::currentValues())
             ->whereDate('starts_on', '<=', $today->toDateString())
             ->where(fn (Builder $q) => $q->whereNull('ends_on')->orWhereDate('ends_on', '>=', $today->toDateString()))
+            // Los paquetes de sesiones sin acceso al gimnasio no sirven para entrar.
+            ->whereHas('plan', fn (Builder $p) => $p->withTrashed()->where('includes_gym_access', true))
             ->with('plan.locations')
             ->orderBy('starts_on')
             ->get();

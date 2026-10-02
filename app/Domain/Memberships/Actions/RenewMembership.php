@@ -2,6 +2,7 @@
 
 namespace App\Domain\Memberships\Actions;
 
+use App\Domain\Appointments\Services\SessionLedger;
 use App\Domain\Audit\Enums\AuditEvent;
 use App\Domain\Audit\Services\AuditLogger;
 use App\Domain\Billing\Actions\IssueInvoice;
@@ -25,6 +26,7 @@ class RenewMembership
         private readonly MembershipStatusChanger $statuses,
         private readonly Settings $settings,
         private readonly AuditLogger $audit,
+        private readonly SessionLedger $ledger,
     ) {}
 
     public function execute(Membership $previous): ?Membership
@@ -52,6 +54,7 @@ class RenewMembership
                 'renewed_from_id' => $previous->id,
             ]);
             $this->statuses->record($membership, 'Renovación automática', null);
+            $this->ledger->grantForMembership($membership);
 
             $this->issueInvoice->execute(
                 $member,

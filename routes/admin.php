@@ -6,6 +6,7 @@ use App\Http\Admin\Controllers\MemberAccessCardController;
 use App\Http\Admin\Controllers\MemberPhotoController;
 use App\Http\Admin\Controllers\ProfileController;
 use App\Http\Admin\Controllers\SecurityController;
+use App\Livewire\Admin\Appointments\Agenda;
 use App\Livewire\Admin\Audit\AuditIndex;
 use App\Livewire\Admin\Billing\PaymentIndex;
 use App\Livewire\Admin\CheckIns\CheckInIndex;
@@ -23,7 +24,10 @@ use App\Livewire\Admin\Plans\PlanForm;
 use App\Livewire\Admin\Plans\PlanIndex;
 use App\Livewire\Admin\Roles\RoleEdit;
 use App\Livewire\Admin\Roles\RoleIndex;
+use App\Livewire\Admin\Services\ServiceForm;
+use App\Livewire\Admin\Services\ServiceIndex;
 use App\Livewire\Admin\Settings\SettingsPage;
+use App\Livewire\Admin\Staff\StaffAvailability;
 use App\Livewire\Admin\Staff\StaffForm;
 use App\Livewire\Admin\Staff\StaffIndex;
 use Illuminate\Support\Facades\Route;
@@ -60,6 +64,10 @@ Route::prefix('admin')
             Route::get('/documentos/{document}', DocumentDownloadController::class)->whereUuid('document')->name('documents.download');
 
             Route::livewire('/asistencia', CheckInIndex::class)->name('check-ins.index');
+            Route::livewire('/agenda', Agenda::class)->name('appointments.index');
+            Route::livewire('/servicios', ServiceIndex::class)->name('services.index');
+            Route::livewire('/servicios/crear', ServiceForm::class)->name('services.create');
+            Route::livewire('/servicios/{service}/editar', ServiceForm::class)->whereNumber('service')->name('services.edit');
             Route::livewire('/membresias', MembershipIndex::class)->name('memberships.index');
             Route::livewire('/pagos', PaymentIndex::class)->name('payments.index');
             Route::get('/comprobantes/{invoice}', InvoiceController::class)->whereNumber('invoice')->name('invoices.show');
@@ -71,6 +79,7 @@ Route::prefix('admin')
             Route::livewire('/staff', StaffIndex::class)->name('staff.index');
             Route::livewire('/staff/crear', StaffForm::class)->name('staff.create');
             Route::livewire('/staff/{staff}/editar', StaffForm::class)->whereNumber('staff')->name('staff.edit');
+            Route::livewire('/staff/{staff}/disponibilidad', StaffAvailability::class)->whereNumber('staff')->name('staff.availability');
 
             Route::livewire('/roles', RoleIndex::class)->name('roles.index');
             Route::livewire('/roles/{role}', RoleEdit::class)->whereNumber('role')->name('roles.edit');

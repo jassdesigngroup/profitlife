@@ -29,7 +29,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 #[Fillable([
     'name', 'slug', 'description', 'duration_unit', 'duration_count', 'billing_unit', 'billing_count', 'price_cents',
-    'enrollment_fee_cents', 'currency', 'tax_rate_bps', 'access_scope', 'visit_limit_count', 'visit_limit_period',
+    'enrollment_fee_cents', 'currency', 'tax_rate_bps', 'access_scope', 'includes_gym_access', 'visit_limit_count', 'visit_limit_period',
     'max_freeze_days', 'auto_renews', 'benefits', 'is_active', 'sort_order',
 ])]
 #[UseFactory(MembershipPlanFactory::class)]
@@ -53,6 +53,7 @@ class MembershipPlan extends Model
             'visit_limit_count' => 'integer',
             'max_freeze_days' => 'integer',
             'auto_renews' => 'boolean',
+            'includes_gym_access' => 'boolean',
             'benefits' => 'array',
             'is_active' => 'boolean',
             'sort_order' => 'integer',
@@ -65,6 +66,16 @@ class MembershipPlan extends Model
     public function locations(): BelongsToMany
     {
         return $this->belongsToMany(Location::class)->withoutGlobalScope(LocationScope::class);
+    }
+
+    /**
+     * Sesiones de servicios incluidas en el plan.
+     *
+     * @return HasMany<MembershipPlanService, $this>
+     */
+    public function planServices(): HasMany
+    {
+        return $this->hasMany(MembershipPlanService::class);
     }
 
     /**
@@ -124,7 +135,7 @@ class MembershipPlan extends Model
     {
         return LogOptions::defaults()
             ->useLogName('memberships')
-            ->logOnly(['name', 'price_cents', 'enrollment_fee_cents', 'tax_rate_bps', 'duration_unit', 'duration_count', 'access_scope', 'visit_limit_count', 'visit_limit_period', 'max_freeze_days', 'auto_renews', 'is_active'])
+            ->logOnly(['name', 'includes_gym_access', 'price_cents', 'enrollment_fee_cents', 'tax_rate_bps', 'duration_unit', 'duration_count', 'access_scope', 'visit_limit_count', 'visit_limit_period', 'max_freeze_days', 'auto_renews', 'is_active'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->setDescriptionForEvent(fn (string $event) => AuditEvent::describeModelEvent('plan', $event));

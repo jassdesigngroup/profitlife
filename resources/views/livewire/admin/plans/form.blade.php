@@ -28,6 +28,7 @@
 
             <x-card title="Acceso">
                 <div class="space-y-5">
+                    <x-checkbox wire:model="includes_gym_access" label="Incluye acceso al gimnasio" description="Desmárquelo para paquetes de sesiones (p. ej. 10 fisioterapias): el kiosco no dará ingreso con este plan." />
                     <x-checkbox wire:model.live="limit_visits" label="Limitar el número de ingresos" description="Por ejemplo, 12 ingresos al mes. El control se aplica en el check-in." />
                     @if ($limit_visits)
                         <div class="grid gap-5 sm:grid-cols-2">
@@ -49,6 +50,25 @@
         </div>
 
         <div class="space-y-6">
+            <x-card title="Sesiones incluidas" description="Citas que el plan cubre. Vacío = ilimitadas. Se otorgan al vender o renovar y vencen con la membresía.">
+                <div class="space-y-3">
+                    @foreach ($sessions as $i => $row)
+                        <div wire:key="ps-{{ $i }}" class="space-y-2 rounded-lg bg-canvas p-3 ring-1 ring-steel-200">
+                            <x-select label="Servicio" wire:model="sessions.{{ $i }}.service_id" :options="$services" placeholder="Seleccione" />
+                            <div class="grid grid-cols-2 gap-2">
+                                <x-input label="Sesiones" type="number" min="1" wire:model="sessions.{{ $i }}.sessions" placeholder="Ilimitadas" />
+                                <x-select label="Cada" wire:model="sessions.{{ $i }}.period" :options="$sessionPeriods" />
+                            </div>
+                            <x-button variant="ghost" size="sm" class="text-danger-700" wire:click="removeSession({{ $i }})">Quitar</x-button>
+                        </div>
+                    @endforeach
+                    @if (count($services) > 0)
+                        <x-button variant="secondary" size="sm" icon="plus" wire:click="addSession">Agregar servicio</x-button>
+                    @else
+                        <p class="text-sm text-steel-700">Cree primero los servicios en <em>Servicios</em>.</p>
+                    @endif
+                </div>
+            </x-card>
             <x-card title="Venta">
                 <div class="space-y-4">
                     <x-checkbox wire:model="auto_renews" label="Renovación automática" description="Al vencer se crea el periodo siguiente con su comprobante pendiente." />

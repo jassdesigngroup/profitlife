@@ -219,6 +219,7 @@ membership_plans
   currency              CHAR(3)
   tax_rate_bps          SMALLINT default 0
   access_scope          VARCHAR(30)          -- all_locations | selected_locations
+  includes_gym_access   BOOLEAN default true -- Fase 6: false = paquete de sesiones sin ingreso al gimnasio
   visit_limit_count     SMALLINT NULL        -- nulo = visitas ilimitadas
   visit_limit_period    VARCHAR(10) NULL     -- week | month | term
   max_freeze_days       SMALLINT NULL
@@ -425,6 +426,16 @@ appointment_status_histories            -- solo inserción
   changed_by      FK users NULL
   created_at
 ```
+
+Reglas (Fase 6):
+
+- Las citas que crea el staff quedan `confirmed` y `source = admin`. Solo se agenda dentro de `staff_schedules` (hora local de la sede), fuera de `staff_time_off` y de los cierres de la sede.
+- Cobro: si una membresía vigente del cliente incluye el servicio sin límite, no se cobra; si tiene saldo en `session_credits`, se descuenta una sesión (`consume`, −1); si no, se emite un comprobante por el precio de la sede (`invoice_items.billable_type = appointment`).
+- Las sesiones de `membership_plan_service` se otorgan al vender o renovar (`grant`, `expires_on` = fin de la membresía) y el saldo restante se da de baja al vencer o cancelar la membresía (`expire`). Mientras el cobro del plan coincida con su duración, `per_billing_period` y `per_term` se comportan igual.
+- Cancelar con al menos `appointments.cancellation_hours` (ajuste, 12 por defecto) de anticipación devuelve la sesión (`refund`) y anula el comprobante sin pagos; una cancelación tardía o una inasistencia la conservan descontada. Gerencia puede devolverla (`session-credits.adjust`, auditado).
+- Reprogramar marca la cita original `rescheduled` y crea otra con `rescheduled_from_id`; la sesión o el comprobante pasan a la nueva.
+- Solo se asignan salas de tipo consultorio (`rooms.type = consulting_room`) a los servicios con `requires_room`.
+- Check-in: quien no tiene una membresía con `includes_gym_access` puede entrar si tiene una cita en esa sede desde 60 minutos antes de su inicio hasta su fin (se registra aceptado y sin `membership_id`).
 
 **Doble booking en MySQL.** `BookAppointmentAction` abre una transacción, bloquea la fila del profesional (y la de la sala, si hay) con `SELECT … FOR UPDATE`, comprueba que no exista otra cita activa que se solape (`starts_at < :fin AND ends_at > :inicio`, estados `pending` o `confirmed`) y solo entonces inserta. El bloqueo sobre la fila del profesional serializa las reservas simultáneas; los índices `(staff_id, starts_at, ends_at)` y `(room_id, …)` hacen barata la comprobación.
 
@@ -847,6 +858,7 @@ settings
 |---|---|
 | ¿Hay clientes menores de edad? | **Pendiente.** Si se confirma: tabla `member_guardians` (acudiente), migración aditiva. Mientras tanto el formulario avisa cuando el cliente es menor y `consents.signed_name` admite el nombre del acudiente. |
 | ¿Check-in por teléfono con PIN? | **Decidido (Fase 3): sí.** PIN de 4 dígitos, opcional, guardado como hash en `members.checkin_pin_hash`. Sin PIN no hay check-in por teléfono. |
+| ¿Paquetes de sesiones sin gimnasio? | **Decidido (Fase 6):** columna `membership_plans.includes_gym_access`. |
 | ¿Hay clases grupales? | Tablas `class_sessions` y `class_bookings`; `appointments` no cubre cupos. |
 | ¿Factura electrónica DIAN? | Tabla `fiscal_documents`, datos fiscales del cliente (tipo de persona, NIT). |
 | ¿Fisioterapia sin membresía? | Ninguno: `members` no exige membresía. |

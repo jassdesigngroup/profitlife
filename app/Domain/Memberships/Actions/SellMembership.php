@@ -2,6 +2,7 @@
 
 namespace App\Domain\Memberships\Actions;
 
+use App\Domain\Appointments\Services\SessionLedger;
 use App\Domain\Audit\Enums\AuditEvent;
 use App\Domain\Audit\Services\AuditLogger;
 use App\Domain\Billing\Actions\IssueInvoice;
@@ -36,6 +37,7 @@ class SellMembership
         private readonly MembershipStatusChanger $statuses,
         private readonly Settings $settings,
         private readonly AuditLogger $audit,
+        private readonly SessionLedger $ledger,
     ) {}
 
     /**
@@ -79,6 +81,7 @@ class SellMembership
                 'created_by' => $actor->id,
             ]);
             $this->statuses->record($membership, 'Venta', $actor);
+            $this->ledger->grantForMembership($membership, $actor);
 
             $lines = [new InvoiceLine(
                 description: "Membresía {$plan->name} ({$startsOn->format('d/m/Y')} – {$endsOn->format('d/m/Y')})",

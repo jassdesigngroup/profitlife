@@ -78,6 +78,8 @@ enum Permission: string
     case AppointmentsCreate = 'appointments.create';
     case AppointmentsUpdate = 'appointments.update';
     case AppointmentsCancel = 'appointments.cancel';
+    case ServicesManage = 'services.manage';
+    case SessionCreditsAdjust = 'session-credits.adjust';
 
     // Notas clínicas (Fase 7) — permisos clínicos
     case ClinicalNotesView = 'clinical-notes.view';
@@ -136,6 +138,8 @@ enum Permission: string
             'memberships' => 'Membresías',
             'check-ins' => 'Check-in',
             'appointments' => 'Citas',
+            'services' => 'Servicios',
+            'session-credits' => 'Sesiones incluidas',
             'clinical-notes' => 'Notas clínicas',
             'training' => 'Entrenamiento',
             'assessments' => 'Evaluaciones',
@@ -214,6 +218,8 @@ enum Permission: string
             self::AppointmentsCreate => 'Agendar citas',
             self::AppointmentsUpdate => 'Editar citas',
             self::AppointmentsCancel => 'Cancelar citas',
+            self::ServicesManage => 'Gestionar servicios',
+            self::SessionCreditsAdjust => 'Ajustar y devolver sesiones',
             self::ClinicalNotesView => 'Ver notas clínicas',
             self::ClinicalNotesCreate => 'Crear notas clínicas',
             self::ClinicalNotesUpdate => 'Editar notas clínicas',

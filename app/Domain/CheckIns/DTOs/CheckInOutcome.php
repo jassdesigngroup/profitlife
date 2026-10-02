@@ -2,6 +2,7 @@
 
 namespace App\Domain\CheckIns\DTOs;
 
+use App\Domain\Appointments\Models\Appointment;
 use App\Domain\CheckIns\Enums\RejectionReason;
 use App\Domain\CheckIns\Models\CheckIn;
 use App\Domain\Members\Models\Member;
@@ -21,6 +22,7 @@ final readonly class CheckInOutcome
         public ?Membership $membership,
         public array $warnings = [],
         public ?int $visitsLeft = null,
+        public ?Appointment $appointment = null,
     ) {}
 
     public function accepted(): bool

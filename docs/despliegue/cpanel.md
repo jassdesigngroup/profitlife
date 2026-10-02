@@ -185,6 +185,12 @@ php artisan up
   *Sedes → (sede) → Kioscos*. La cámara solo funciona con HTTPS. El kiosco usa el encabezado `Authorization`:
   el `public/.htaccess` del proyecto ya lo deja pasar; no lo reemplace. Los correos con el código QR salen por la
   cola, así que dependen del cron de `schedule:run`.
+- **Fase 6 (citas):** `migrate` crea servicios, disponibilidad, citas y el libro de sesiones, y añade
+  `membership_plans.includes_gym_access` (los planes existentes quedan con acceso al gimnasio). `db:seed` añade los
+  permisos `services.manage` y `session-credits.adjust` y el ajuste `appointments.cancellation_hours` (12 por defecto,
+  o `APPOINTMENT_CANCELLATION_HOURS`). Después: cree los servicios en *Servicios*, marque a los profesionales como
+  "Atiende citas" en *Staff* y defina su *Disponibilidad*; sin franjas no se les puede agendar. Los correos de
+  confirmación de citas salen por la cola (cron de `schedule:run`).
 
 ## 9. Comprobaciones finales
 

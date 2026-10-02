@@ -4,13 +4,15 @@
     $nav = [
         ['label' => 'Inicio', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard', 'icon' => 'home', 'can' => 'dashboard.view'],
         ['label' => 'Clientes', 'route' => 'admin.members.index', 'active' => 'admin.members.*', 'icon' => 'heart', 'can' => 'members.view'],
+        ['label' => 'Agenda', 'route' => 'admin.appointments.index', 'active' => 'admin.appointments.*', 'icon' => 'calendar', 'can' => 'appointments.view'],
         ['label' => 'Asistencia', 'route' => 'admin.check-ins.index', 'active' => 'admin.check-ins.*', 'icon' => 'enter', 'can' => 'check-ins.view'],
-        ['label' => 'Membresías', 'route' => 'admin.memberships.index', 'active' => 'admin.memberships.*', 'icon' => 'calendar', 'can' => 'memberships.view'],
+        ['label' => 'Membresías', 'route' => 'admin.memberships.index', 'active' => 'admin.memberships.*', 'icon' => 'heart', 'can' => 'memberships.view'],
         ['label' => 'Pagos', 'route' => 'admin.payments.index', 'active' => 'admin.payments.*', 'icon' => 'chart', 'can' => 'payments.view'],
         ['label' => 'Sedes', 'route' => 'admin.locations.index', 'active' => 'admin.locations.*', 'icon' => 'map-pin', 'can' => 'locations.view'],
         ['label' => 'Staff', 'route' => 'admin.staff.index', 'active' => 'admin.staff.*', 'icon' => 'users', 'can' => 'staff.view'],
     ];
     $adminNav = [
+        ['label' => 'Servicios', 'route' => 'admin.services.index', 'active' => 'admin.services.*', 'icon' => 'clipboard', 'can' => 'services.manage'],
         ['label' => 'Planes', 'route' => 'admin.plans.index', 'active' => 'admin.plans.*', 'icon' => 'bolt', 'can' => 'memberships.manage-plans'],
         ['label' => 'Ajustes', 'route' => 'admin.settings', 'active' => 'admin.settings', 'icon' => 'squares', 'can' => 'settings.update'],
         ['label' => 'Roles y permisos', 'route' => 'admin.roles.index', 'active' => 'admin.roles.*', 'icon' => 'shield', 'can' => 'roles.view'],

@@ -1,5 +1,8 @@
 <?php
 
+use App\Domain\Appointments\Actions\BookAppointment;
+use App\Domain\Appointments\Models\Appointment;
+use App\Domain\Appointments\Models\Service;
 use App\Domain\Billing\Enums\PaymentMethod;
 use App\Domain\CheckIns\Actions\RegisterCheckIn;
 use App\Domain\CheckIns\DTOs\CheckInOutcome;
@@ -12,6 +15,7 @@ use App\Domain\Memberships\Actions\SellMembership;
 use App\Domain\Memberships\Models\Membership;
 use App\Domain\Memberships\Models\MembershipPlan;
 use App\Domain\Staff\Models\Staff;
+use App\Domain\Staff\Models\StaffSchedule;
 use App\Support\BusinessDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -86,4 +90,54 @@ function registerCheckIn(Member $member, Location $location, ?User $actor = null
 {
     return app(RegisterCheckIn::class)
         ->execute($location, CheckInMethod::Manual, $member, null, $actor);
+}
+
+/**
+ * Servicio ofrecido en las sedes indicadas.
+ *
+ * @param  list<Location>  $locations
+ */
+function serviceAt(array $locations, array $attributes = []): Service
+{
+    $service = Service::factory()->create($attributes);
+    $service->locations()->sync(collect($locations)->mapWithKeys(fn (Location $l) => [$l->id => ['is_active' => true]])->all());
+
+    return $service->fresh('locations');
+}
+
+/**
+ * Profesional agendable que presta los servicios, con franjas diarias en la sede.
+ *
+ * @param  list<Service>  $services
+ */
+function professional(Location $location, array $services, string $from = '06:00', string $until = '20:00', RoleName $role = RoleName::Physiotherapist): User
+{
+    $user = staffUser($role, [$location]);
+    $staff = staffOf($user);
+    $staff->forceFill(['is_bookable' => true])->save();
+    $staff->services()->sync(collect($services)->pluck('id')->all());
+
+    foreach (range(1, 7) as $day) {
+        StaffSchedule::query()->create([
+            'staff_id' => $staff->id, 'location_id' => $location->id, 'day_of_week' => $day,
+            'starts_at' => "{$from}:00", 'ends_at' => "{$until}:00",
+        ]);
+    }
+
+    return $user;
+}
+
+/**
+ * Instante UTC a partir de una hora local de Bogotá.
+ */
+function bogota(string $dateTime): CarbonImmutable
+{
+    return CarbonImmutable::parse($dateTime, 'America/Bogota')->utc();
+}
+
+function book(Member $member, Service $service, Location $location, User $professional, string $localStart, User $actor, ?int $roomId = null): Appointment
+{
+    return app(BookAppointment::class)->execute(
+        $member, $service, $location, staffOf($professional), bogota($localStart), $actor, $roomId,
+    );
 }

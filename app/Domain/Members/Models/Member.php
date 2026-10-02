@@ -2,6 +2,7 @@
 
 namespace App\Domain\Members\Models;
 
+use App\Domain\Appointments\Models\Appointment;
 use App\Domain\Audit\Enums\AuditEvent;
 use App\Domain\Consents\Models\Consent;
 use App\Domain\Documents\Models\Document;
@@ -67,8 +68,9 @@ class Member extends Model
     }
 
     /**
-     * Visible en su sede principal y en las sedes donde tiene una membresía
-     * vigente: la de compra y las del plan (o todas, si el plan es global).
+     * Visible en su sede principal, en las sedes donde tiene una membresía
+     * vigente (la de compra y las del plan, o todas si el plan es global) y
+     * en las sedes donde tiene o tuvo citas.
      *
      * @param  Builder<static>  $query
      * @param  list<int>  $locationIds
@@ -85,7 +87,8 @@ class Member extends Model
                             ->orWhereHas('plan', fn (Builder $p) => $p
                                 ->where('access_scope', AccessScope::AllLocations)
                                 ->orWhereHas('locations', fn (Builder $l) => $l->whereIn('locations.id', $locationIds))));
-                });
+                })
+                ->orWhereHas('appointments', fn (Builder $a) => $a->withoutGlobalScope(LocationScope::class)->whereIn('location_id', $locationIds));
         });
     }
 
@@ -112,7 +115,20 @@ class Member extends Model
             }
         }
 
+        $appointmentLocations = $this->appointments()->withoutGlobalScope(LocationScope::class)->distinct()->pluck('location_id');
+        foreach ($appointmentLocations as $locationId) {
+            $ids[] = (int) $locationId;
+        }
+
         return array_values(array_unique($ids));
+    }
+
+    /**
+     * @return HasMany<Appointment, $this>
+     */
+    public function appointments(): HasMany
+    {
+        return $this->hasMany(Appointment::class);
     }
 
     /**

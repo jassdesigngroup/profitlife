@@ -2,6 +2,7 @@
 
 namespace App\Domain\Memberships\Actions;
 
+use App\Domain\Appointments\Services\SessionLedger;
 use App\Domain\Audit\Enums\AuditEvent;
 use App\Domain\Audit\Services\AuditLogger;
 use App\Domain\Billing\Actions\VoidInvoice;
@@ -22,6 +23,7 @@ class CancelMembership
         private readonly MembershipStatusChanger $statuses,
         private readonly VoidInvoice $voidInvoice,
         private readonly AuditLogger $audit,
+        private readonly SessionLedger $ledger,
     ) {}
 
     public function execute(Membership $membership, string $reason, User $actor): void
@@ -38,6 +40,7 @@ class CancelMembership
             ])->save();
 
             $this->statuses->change($membership, MembershipStatus::Cancelled, $reason, $actor);
+            $this->ledger->expireMembership($membership, $actor);
 
             $invoice = $membership->invoice();
             if ($invoice !== null && $invoice->paid_cents === 0) {

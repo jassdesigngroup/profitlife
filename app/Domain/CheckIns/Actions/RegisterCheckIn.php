@@ -2,6 +2,8 @@
 
 namespace App\Domain\CheckIns\Actions;
 
+use App\Domain\Appointments\Enums\AppointmentStatus;
+use App\Domain\Appointments\Models\Appointment;
 use App\Domain\Billing\Models\Invoice;
 use App\Domain\CheckIns\DTOs\CheckInOutcome;
 use App\Domain\CheckIns\Enums\CheckInMethod;
@@ -69,6 +71,21 @@ class RegisterCheckIn
 
             [$membership, $reason] = $this->access->resolve($member, $location->id, $today);
             if ($reason !== null) {
+                // Sin membresía que sirva, entra si tiene una cita próxima en esta sede.
+                $appointment = $this->upcomingAppointment($member, $location);
+                if ($appointment !== null) {
+                    $checkIn = $this->record($location, $method, $member, null, $device, $actor, null);
+                    $time = $appointment->starts_at->setTimezone($location->timezone ?: 'UTC')->format('g:i a');
+
+                    return new CheckInOutcome(
+                        $checkIn,
+                        $member,
+                        null,
+                        ["Ingreso por cita: {$appointment->service->name} a las {$time} con {$appointment->staff->full_name}."],
+                        appointment: $appointment,
+                    );
+                }
+
                 return $this->reject($location, $method, $member, $membership, $device, $actor, $reason);
             }
 
@@ -88,6 +105,26 @@ class RegisterCheckIn
                 $visitsLeft,
             );
         });
+    }
+
+    /**
+     * Cita del cliente en la sede que empieza dentro de la ventana previa
+     * (60 minutos) o que está en curso.
+     */
+    public function upcomingAppointment(Member $member, Location $location): ?Appointment
+    {
+        $now = Date::now();
+
+        return Appointment::query()->withoutGlobalScopes()
+            ->whereNull('deleted_at')
+            ->where('member_id', $member->id)
+            ->where('location_id', $location->id)
+            ->whereIn('status', [...AppointmentStatus::activeValues(), AppointmentStatus::Completed->value])
+            ->where('starts_at', '<=', $now->copy()->addMinutes((int) config('profitlife.appointments.check_in_minutes_before')))
+            ->where('ends_at', '>=', $now)
+            ->with(['service', 'staff'])
+            ->orderBy('starts_at')
+            ->first();
     }
 
     /**

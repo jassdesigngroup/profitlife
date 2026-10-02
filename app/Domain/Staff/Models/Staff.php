@@ -2,6 +2,7 @@
 
 namespace App\Domain\Staff\Models;
 
+use App\Domain\Appointments\Models\Service;
 use App\Domain\Audit\Enums\AuditEvent;
 use App\Domain\Identity\Models\User;
 use App\Domain\Locations\Models\Location;
@@ -20,6 +21,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -63,6 +65,30 @@ class Staff extends Model
             ->using(LocationStaff::class)
             ->withPivot(['id', 'is_primary'])
             ->withTimestamps();
+    }
+
+    /**
+     * @return BelongsToMany<Service, $this>
+     */
+    public function services(): BelongsToMany
+    {
+        return $this->belongsToMany(Service::class);
+    }
+
+    /**
+     * @return HasMany<StaffSchedule, $this>
+     */
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(StaffSchedule::class)->orderBy('day_of_week')->orderBy('starts_at');
+    }
+
+    /**
+     * @return HasMany<StaffTimeOff, $this>
+     */
+    public function timeOff(): HasMany
+    {
+        return $this->hasMany(StaffTimeOff::class)->orderBy('starts_at');
     }
 
     /**

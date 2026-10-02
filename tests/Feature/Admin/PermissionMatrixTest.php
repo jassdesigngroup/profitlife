@@ -33,6 +33,10 @@ dataset('pantallas', function () {
         'crear cliente' => ['admin.members.create', [], [RoleName::SuperAdmin, RoleName::Admin, RoleName::LocationManager, RoleName::Reception]],
         'editar cliente' => ['admin.members.edit', ['member'], [RoleName::SuperAdmin, RoleName::Admin, RoleName::LocationManager, RoleName::Reception]],
         'asistencia' => ['admin.check-ins.index', [], $all],
+        'agenda' => ['admin.appointments.index', [], $all],
+        'servicios' => ['admin.services.index', [], [RoleName::SuperAdmin, RoleName::Admin]],
+        'crear servicio' => ['admin.services.create', [], [RoleName::SuperAdmin, RoleName::Admin]],
+        'disponibilidad del staff' => ['admin.staff.availability', ['staff'], [RoleName::SuperAdmin, RoleName::Admin, RoleName::LocationManager]],
         'membresías' => ['admin.memberships.index', [], [RoleName::SuperAdmin, RoleName::Admin, RoleName::LocationManager, RoleName::Reception]],
         'pagos' => ['admin.payments.index', [], [RoleName::SuperAdmin, RoleName::Admin, RoleName::LocationManager, RoleName::Reception]],
         'planes' => ['admin.plans.index', [], [RoleName::SuperAdmin, RoleName::Admin]],
@@ -46,6 +50,9 @@ it('aplica la matriz de acceso por rol', function (string $route, array $params,
     $parameters = in_array('location', $params, true) ? ['location' => $this->location->id] : [];
     if (in_array('member', $params, true)) {
         $parameters = ['member' => memberAt($this->location)->id];
+    }
+    if (in_array('staff', $params, true)) {
+        $parameters = ['staff' => staffOf(staffUser(RoleName::Physiotherapist, [$this->location]))->id];
     }
 
     foreach (RoleName::staffRoles() as $role) {

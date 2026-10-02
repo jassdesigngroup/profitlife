@@ -28,6 +28,8 @@ class SettingsPage extends Component
 
     public int|string $duplicateMinutes = 60;
 
+    public int|string $cancellationHours = 12;
+
     /** @var array<int|string, string> sede => días ('' = usa el general) */
     public array $locationGrace = [];
 
@@ -37,6 +39,7 @@ class SettingsPage extends Component
 
         $this->graceDays = $settings->graceDays();
         $this->duplicateMinutes = $settings->checkInDuplicateMinutes();
+        $this->cancellationHours = $settings->cancellationHours();
 
         foreach ($this->locations() as $location) {
             $own = Setting::query()->where('group', 'memberships')->where('key', 'grace_days')->where('location_id', $location->id)->value('value');
@@ -51,13 +54,15 @@ class SettingsPage extends Component
         $this->validate([
             'graceDays' => ['required', 'integer', 'min:0', 'max:60'],
             'duplicateMinutes' => ['required', 'integer', 'min:0', 'max:720'],
+            'cancellationHours' => ['required', 'integer', 'min:0', 'max:168'],
             'locationGrace' => ['array'],
             'locationGrace.*' => ['nullable', 'integer', 'min:0', 'max:60'],
-        ], [], ['graceDays' => 'días de gracia', 'duplicateMinutes' => 'minutos', 'locationGrace.*' => 'días de la sede']);
+        ], [], ['graceDays' => 'días de gracia', 'duplicateMinutes' => 'minutos', 'cancellationHours' => 'horas', 'locationGrace.*' => 'días de la sede']);
 
-        $old = ['general' => $settings->graceDays(), 'duplicate_minutes' => $settings->checkInDuplicateMinutes()];
+        $old = ['general' => $settings->graceDays(), 'duplicate_minutes' => $settings->checkInDuplicateMinutes(), 'cancellation_hours' => $settings->cancellationHours()];
         $settings->set('memberships', 'grace_days', (int) $this->graceDays);
         $settings->set('check_ins', 'duplicate_minutes', (int) $this->duplicateMinutes);
+        $settings->set('appointments', 'cancellation_hours', (int) $this->cancellationHours);
 
         $validIds = $this->locations()->pluck('id')->all();
 
@@ -76,12 +81,13 @@ class SettingsPage extends Component
         $settings->flush();
 
         $audit->log('settings', AuditEvent::SettingsUpdated, null, auth()->user(), [
-            'key' => 'memberships.grace_days, check_ins.duplicate_minutes',
+            'key' => 'memberships.grace_days, check_ins.duplicate_minutes, appointments.cancellation_hours',
             'old' => $old,
             'attributes' => [
                 'general' => (int) $this->graceDays,
                 'por_sede' => array_filter($this->locationGrace, fn ($v) => $v !== ''),
                 'duplicate_minutes' => (int) $this->duplicateMinutes,
+                'cancellation_hours' => (int) $this->cancellationHours,
             ],
         ]);
 
