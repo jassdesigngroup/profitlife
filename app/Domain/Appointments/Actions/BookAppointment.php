@@ -20,6 +20,8 @@ use App\Domain\Locations\Models\Location;
 use App\Domain\Locations\Models\Room;
 use App\Domain\Members\Enums\MemberStatus;
 use App\Domain\Members\Models\Member;
+use App\Domain\Physiotherapy\Models\PhysiotherapyRecord;
+use App\Domain\Physiotherapy\Services\ClinicalTeam;
 use App\Domain\Settings\Services\Settings;
 use App\Domain\Staff\Models\Staff;
 use App\Support\BusinessDate;
@@ -45,6 +47,7 @@ class BookAppointment
         private readonly IssueInvoice $issueInvoice,
         private readonly AuditLogger $audit,
         private readonly Settings $settings,
+        private readonly ClinicalTeam $team,
     ) {}
 
     public function execute(
@@ -110,6 +113,14 @@ class BookAppointment
                 'created_by' => $actor->id,
             ]);
             $this->statuses->record($appointment, $rescheduledFrom ? 'Reprogramada' : 'Agendada', $actor);
+
+            // Una cita clínica con otro profesional lo suma al equipo tratante.
+            if ($service->is_clinical) {
+                $record = PhysiotherapyRecord::query()->where('member_id', $member->id)->first();
+                if ($record !== null) {
+                    $this->team->add($record, $staff, $actor);
+                }
+            }
 
             $rescheduledFrom !== null
                 ? $this->moveCoverage($rescheduledFrom, $appointment, $actor)

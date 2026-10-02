@@ -30,6 +30,10 @@ use App\Domain\Memberships\Models\Membership;
 use App\Domain\Memberships\Models\MembershipPlan;
 use App\Domain\Notifications\Listeners\RecordNotificationLog;
 use App\Domain\Notifications\Models\NotificationLog;
+use App\Domain\Physiotherapy\Models\ClinicalNote;
+use App\Domain\Physiotherapy\Models\PhysiotherapyRecord;
+use App\Domain\Physiotherapy\Models\PhysiotherapySession;
+use App\Domain\Physiotherapy\Models\TreatmentPlan;
 use App\Domain\Settings\Models\Setting;
 use App\Domain\Settings\Services\Settings;
 use App\Domain\Staff\Models\Staff;
@@ -100,6 +104,10 @@ class AppServiceProvider extends ServiceProvider
             'session_credit' => SessionCredit::class,
             'staff_schedule' => StaffSchedule::class,
             'staff_time_off' => StaffTimeOff::class,
+            'physiotherapy_record' => PhysiotherapyRecord::class,
+            'treatment_plan' => TreatmentPlan::class,
+            'physiotherapy_session' => PhysiotherapySession::class,
+            'clinical_note' => ClinicalNote::class,
             'role' => Role::class,
             'permission' => Permission::class,
         ]);

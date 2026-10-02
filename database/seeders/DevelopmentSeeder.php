@@ -9,7 +9,9 @@ use App\Domain\Billing\Enums\PaymentMethod;
 use App\Domain\CheckIns\Actions\RegisterCheckIn;
 use App\Domain\CheckIns\Enums\CheckInMethod;
 use App\Domain\CheckIns\Models\KioskDevice;
+use App\Domain\Consents\Enums\ConsentMethod;
 use App\Domain\Consents\Enums\ConsentType;
+use App\Domain\Consents\Models\Consent;
 use App\Domain\Consents\Models\ConsentTemplate;
 use App\Domain\Identity\Enums\RoleName;
 use App\Domain\Identity\Models\User;
@@ -26,6 +28,11 @@ use App\Domain\Memberships\Enums\DurationUnit;
 use App\Domain\Memberships\Enums\SessionPeriod;
 use App\Domain\Memberships\Enums\VisitLimitPeriod;
 use App\Domain\Memberships\Models\MembershipPlan;
+use App\Domain\Physiotherapy\Actions\OpenPhysiotherapyRecord;
+use App\Domain\Physiotherapy\Actions\RecordPhysiotherapySession;
+use App\Domain\Physiotherapy\Actions\SaveTreatmentPlan;
+use App\Domain\Physiotherapy\Enums\PlanStatus;
+use App\Domain\Physiotherapy\Enums\SessionType;
 use App\Domain\Shared\Enums\DocumentType;
 use App\Domain\Staff\Enums\StaffStatus;
 use App\Domain\Staff\Models\Staff;
@@ -240,6 +247,56 @@ class DevelopmentSeeder extends Seeder
         $book->execute($members[0], $physio->fresh('locations'), $cabecera, $fisio, $at('08:00')->utc(), $seller, notify: false);
         $book->execute($members[1], $physio->fresh('locations'), $cabecera, $fisio, $at('10:00')->utc(), $seller, notify: false);
         $book->execute($members[1], $training->fresh('locations'), $provenza, $trainer, CarbonImmutable::parse($day->toDateString().' 07:00', $provenza->timezone)->utc(), $seller, notify: false);
+
+        $this->clinicalRecord($members[0], $fisio, $cabecera);
+    }
+
+    /**
+     * Historia clínica de ejemplo: consentimiento, evaluación firmada, plan y
+     * dos sesiones (la última sin firmar).
+     */
+    private function clinicalRecord(Member $member, Staff $fisio, Location $location): void
+    {
+        $user = $fisio->user;
+        $template = ConsentTemplate::query()->where('type', ConsentType::ClinicalTreatment)->where('is_active', true)->first();
+        if ($template !== null) {
+            Consent::query()->create([
+                'member_id' => $member->id, 'consent_template_id' => $template->id, 'method' => ConsentMethod::Paper,
+                'signed_name' => $member->full_name, 'accepted_at' => now()->subDays(10), 'captured_by' => $user->id,
+            ]);
+        }
+
+        $record = app(OpenPhysiotherapyRecord::class)->execute($member, $user, [
+            'reason_for_consultation' => 'Dolor en rodilla derecha al correr desde hace 3 semanas.',
+            'medical_history' => 'Sin cirugías. Esguince de tobillo derecho en 2023.',
+            'medications' => 'Ninguno',
+            'allergies' => 'Ninguna conocida',
+        ]);
+
+        $plan = app(SaveTreatmentPlan::class)->execute($record, null, $user, [
+            'title' => 'Rehabilitación de rodilla derecha', 'diagnosis' => 'Síndrome de dolor patelofemoral derecho.',
+            'goals' => 'Disminuir el dolor a 2/10 y volver a correr 5 km en 6 semanas.', 'planned_sessions' => 10,
+            'starts_on' => BusinessDate::today()->subDays(7), 'ends_on' => null, 'status' => PlanStatus::Active, 'is_visible_to_member' => true,
+        ]);
+
+        $session = fn (SessionType $type, int $daysAgo, int $pain, array $sections) => app(RecordPhysiotherapySession::class)->execute($record, $user, [
+            'session_type' => $type, 'performed_at' => CarbonImmutable::now()->subDays($daysAgo), 'pain_scale' => $pain,
+            'treatment_plan_id' => $plan->id, 'appointment_id' => null, 'location_id' => $location->id,
+            'summary_for_member' => 'Continúe con los ejercicios en casa dos veces al día.', 'sections' => $sections,
+        ]);
+
+        $evaluation = $session(SessionType::InitialEvaluation, 7, 7, [
+            'subjective' => 'Dolor anterior de rodilla al subir escaleras y correr.',
+            'objective' => 'Dolor a la palpación del borde lateral de la rótula. Debilidad de glúteo medio.',
+            'assessment' => 'Compatible con síndrome patelofemoral.',
+            'plan' => 'Fortalecimiento de cadera y cuádriceps, terapia manual, control de carga.',
+        ]);
+        $evaluation->forceFill(['signed_at' => now()->subDays(7), 'signed_by' => $fisio->id])->save();
+
+        $treatment = $session(SessionType::Treatment, 3, 5, ['subjective' => 'Menos dolor en escaleras.', 'plan' => 'Progresar ejercicios excéntricos.']);
+        $treatment->forceFill(['signed_at' => now()->subDays(3), 'signed_by' => $fisio->id])->save();
+
+        $session(SessionType::Treatment, 0, 4, ['subjective' => 'Corrió 2 km sin dolor.', 'objective' => 'Mejor control de valgo dinámico.']);
     }
 
     /**

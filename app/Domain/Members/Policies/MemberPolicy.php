@@ -5,6 +5,7 @@ namespace App\Domain\Members\Policies;
 use App\Domain\Identity\Enums\Permission;
 use App\Domain\Identity\Models\User;
 use App\Domain\Members\Models\Member;
+use App\Domain\Physiotherapy\Services\ClinicalAccess;
 
 /**
  * Permiso + alcance por la sede principal del cliente. Los documentos
@@ -39,11 +40,15 @@ class MemberPolicy
 
     public function viewClinicalDocuments(User $user, Member $member): bool
     {
-        return $user->can(Permission::ClinicalNotesView->value) && $this->view($user, $member);
+        // Con historia clínica, solo el equipo tratante (o un acceso de emergencia).
+        return $user->can(Permission::ClinicalNotesView->value)
+            && app(ClinicalAccess::class)->canViewClinicalDocuments($user, $member);
     }
 
     public function uploadClinicalDocuments(User $user, Member $member): bool
     {
-        return $user->can(Permission::ClinicalNotesCreate->value) && $this->view($user, $member);
+        return $user->can(Permission::ClinicalNotesCreate->value)
+            && $this->view($user, $member)
+            && app(ClinicalAccess::class)->canViewClinicalDocuments($user, $member);
     }
 }

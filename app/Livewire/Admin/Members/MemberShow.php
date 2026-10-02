@@ -11,6 +11,7 @@ use App\Domain\Members\Enums\MemberStatus;
 use App\Domain\Members\Models\Member;
 use App\Livewire\Admin\Concerns\InteractsWithToasts;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
@@ -49,7 +50,7 @@ class MemberShow extends Component
         $this->authorize('view', $member);
         $this->memberId = $member->id;
 
-        if (! in_array($this->tab, ['summary', 'memberships', 'appointments', 'billing', 'checkins', 'notes', 'documents', 'consents'], true)) {
+        if (! in_array($this->tab, ['summary', 'memberships', 'appointments', 'physio', 'billing', 'checkins', 'notes', 'documents', 'consents'], true)) {
             $this->tab = 'summary';
         }
     }
@@ -134,7 +135,13 @@ class MemberShow extends Component
         $member = $this->member();
         $this->authorize('delete', $member);
 
-        $delete->execute($member);
+        try {
+            $delete->execute($member);
+        } catch (ValidationException $e) {
+            $this->toast(collect($e->errors())->flatten()->first(), 'warning');
+
+            return;
+        }
 
         session()->flash('success', "Cliente {$member->member_number} eliminado.");
         $this->redirectRoute('admin.members.index', navigate: true);

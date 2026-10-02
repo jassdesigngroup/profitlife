@@ -14,6 +14,7 @@ use App\Domain\Members\Policies\MemberPolicy;
 use App\Domain\Memberships\Enums\AccessScope;
 use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\Membership;
+use App\Domain\Physiotherapy\Models\PhysiotherapyRecord;
 use App\Domain\Shared\Enums\DocumentType;
 use App\Support\Concerns\HasLocationScope;
 use App\Support\Scopes\LocationScope;
@@ -28,6 +29,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Activitylog\LogOptions;
@@ -121,6 +123,14 @@ class Member extends Model
         }
 
         return array_values(array_unique($ids));
+    }
+
+    /**
+     * @return HasOne<PhysiotherapyRecord, $this>
+     */
+    public function physiotherapyRecord(): HasOne
+    {
+        return $this->hasOne(PhysiotherapyRecord::class);
     }
 
     /**

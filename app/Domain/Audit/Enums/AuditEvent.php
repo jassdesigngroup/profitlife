@@ -67,6 +67,9 @@ enum AuditEvent: string
     case ScheduleUpdated = 'schedule_updated';
     case TimeOffSaved = 'time_off_saved';
     case TimeOffRemoved = 'time_off_removed';
+    case ClinicalRecordOpened = 'clinical_record_opened';
+    case ClinicalTeamChanged = 'clinical_team_changed';
+    case ClinicalEmergencyAccess = 'clinical_emergency_access';
     case Created = 'created';
     case Updated = 'updated';
     case Deleted = 'deleted';
@@ -130,6 +133,9 @@ enum AuditEvent: string
             self::ScheduleUpdated => 'Disponibilidad modificada',
             self::TimeOffSaved => 'Ausencia registrada',
             self::TimeOffRemoved => 'Ausencia eliminada',
+            self::ClinicalRecordOpened => 'Historia clínica abierta',
+            self::ClinicalTeamChanged => 'Equipo tratante modificado',
+            self::ClinicalEmergencyAccess => 'Acceso de emergencia a historia clínica',
             self::Created => 'Creación',
             self::Updated => 'Modificación',
             self::Deleted => 'Eliminación',
@@ -149,6 +155,8 @@ enum AuditEvent: string
             self::CheckInOverridden, self::AccessCodeRevoked => 'warning',
             self::KioskPaired, self::AccessCodeIssued => 'info',
             self::AppointmentBooked => 'success',
+            self::ClinicalEmergencyAccess => 'danger',
+            self::ClinicalTeamChanged, self::ClinicalRecordOpened => 'info',
             self::AppointmentCancelled => 'danger',
             self::AppointmentRescheduled, self::CreditsAdjusted, self::TimeOffSaved => 'warning',
             self::DocumentDownloaded, self::AccessCodeSent => 'info',
@@ -182,6 +190,7 @@ enum AuditEvent: string
             'billing' => 'Pagos',
             'check_ins' => 'Check-in',
             'appointments' => 'Citas',
+            'clinical' => 'Historia clínica',
             default => (string) $logName,
         };
     }

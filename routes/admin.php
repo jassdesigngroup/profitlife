@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Admin\Controllers\ClinicalRecordPdfController;
 use App\Http\Admin\Controllers\DocumentDownloadController;
 use App\Http\Admin\Controllers\InvoiceController;
 use App\Http\Admin\Controllers\MemberAccessCardController;
@@ -10,6 +11,7 @@ use App\Livewire\Admin\Appointments\Agenda;
 use App\Livewire\Admin\Audit\AuditIndex;
 use App\Livewire\Admin\Billing\PaymentIndex;
 use App\Livewire\Admin\CheckIns\CheckInIndex;
+use App\Livewire\Admin\Clinical\ClinicalRecordShow;
 use App\Livewire\Admin\Consents\ConsentTemplateForm;
 use App\Livewire\Admin\Consents\ConsentTemplateIndex;
 use App\Livewire\Admin\Dashboard;
@@ -60,6 +62,8 @@ Route::prefix('admin')
             Route::livewire('/clientes/{member}', MemberShow::class)->whereNumber('member')->name('members.show');
             Route::livewire('/clientes/{member}/editar', MemberForm::class)->whereNumber('member')->name('members.edit');
             Route::get('/clientes/{member}/foto', MemberPhotoController::class)->whereNumber('member')->name('members.photo');
+            Route::livewire('/clientes/{member}/historia-clinica', ClinicalRecordShow::class)->whereNumber('member')->name('clinical.show');
+            Route::get('/clientes/{member}/historia-clinica/pdf', ClinicalRecordPdfController::class)->whereNumber('member')->name('clinical.pdf');
             Route::get('/clientes/{member}/codigo-acceso', MemberAccessCardController::class)->whereNumber('member')->name('members.access-card');
             Route::get('/documentos/{document}', DocumentDownloadController::class)->whereUuid('document')->name('documents.download');
 

@@ -72,6 +72,12 @@
                     </div>
                     <x-field-error name="status" />
 
+                    @if ($clinicalLink)
+                        <a href="{{ $clinicalLink }}" wire:navigate class="flex items-center gap-2 rounded-lg bg-brand-50 px-4 py-3 text-sm font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-100">
+                            <x-icon name="clipboard" class="size-4" /> Registrar la nota clínica de esta sesión
+                        </a>
+                    @endif
+
                     <details class="text-sm">
                         <summary class="cursor-pointer font-semibold text-steel-700">Historial</summary>
                         <ul class="mt-2 space-y-1 text-steel-700">
