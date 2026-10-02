@@ -75,6 +75,14 @@ class Settings
         return max(0, (int) $this->get('memberships', 'grace_days', config('profitlife.memberships.grace_days'), $locationId));
     }
 
+    /**
+     * Minutos en los que un nuevo ingreso del mismo cliente se considera repetido.
+     */
+    public function checkInDuplicateMinutes(): int
+    {
+        return max(0, (int) $this->get('check_ins', 'duplicate_minutes', config('profitlife.check_ins.duplicate_minutes')));
+    }
+
     public function flush(): void
     {
         Cache::forget(self::CACHE_KEY);

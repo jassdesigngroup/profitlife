@@ -1,5 +1,9 @@
 <?php
 
+use App\Domain\Billing\Enums\PaymentMethod;
+use App\Domain\CheckIns\Actions\RegisterCheckIn;
+use App\Domain\CheckIns\DTOs\CheckInOutcome;
+use App\Domain\CheckIns\Enums\CheckInMethod;
 use App\Domain\Identity\Enums\RoleName;
 use App\Domain\Identity\Models\User;
 use App\Domain\Locations\Models\Location;
@@ -62,4 +66,24 @@ function sellTo(Member $member, MembershipPlan $plan, Location $location, User $
         $startsOn ? CarbonImmutable::createFromFormat('!Y-m-d', $startsOn, 'UTC') : BusinessDate::today(),
         $actor, $discount, $reason, $payment,
     );
+}
+
+/**
+ * Vende un plan ya pagado (sin saldo pendiente).
+ */
+function paidSale(Member $member, Location $location, User $actor, array $planAttributes = [], ?string $startsOn = null): Membership
+{
+    $plan = planFor($planAttributes);
+
+    return sellTo($member, $plan, $location, $actor, $startsOn, [
+        'amount_cents' => $plan->price_cents + (int) $plan->enrollment_fee_cents,
+        'method' => PaymentMethod::Cash,
+        'reference' => null,
+    ]);
+}
+
+function registerCheckIn(Member $member, Location $location, ?User $actor = null): CheckInOutcome
+{
+    return app(RegisterCheckIn::class)
+        ->execute($location, CheckInMethod::Manual, $member, null, $actor);
 }

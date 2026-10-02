@@ -32,6 +32,14 @@ return [
         'grace_days' => (int) env('MEMBERSHIP_GRACE_DAYS', 5),
     ],
 
+    'check_ins' => [
+        // Minutos en los que un segundo ingreso del mismo cliente cuenta como repetido.
+        'duplicate_minutes' => (int) env('CHECKIN_DUPLICATE_MINUTES', 60),
+        // Intentos fallidos de celular + PIN antes de bloquear ese celular un rato.
+        'pin_max_attempts' => 5,
+        'pin_decay_seconds' => 900,
+    ],
+
     'documents' => [
         'disk' => env('DOCUMENTS_DISK', 'local'),
         'max_kb' => 10240,

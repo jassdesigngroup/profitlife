@@ -2,11 +2,13 @@
 
 use App\Http\Admin\Controllers\DocumentDownloadController;
 use App\Http\Admin\Controllers\InvoiceController;
+use App\Http\Admin\Controllers\MemberAccessCardController;
 use App\Http\Admin\Controllers\MemberPhotoController;
 use App\Http\Admin\Controllers\ProfileController;
 use App\Http\Admin\Controllers\SecurityController;
 use App\Livewire\Admin\Audit\AuditIndex;
 use App\Livewire\Admin\Billing\PaymentIndex;
+use App\Livewire\Admin\CheckIns\CheckInIndex;
 use App\Livewire\Admin\Consents\ConsentTemplateForm;
 use App\Livewire\Admin\Consents\ConsentTemplateIndex;
 use App\Livewire\Admin\Dashboard;
@@ -54,8 +56,10 @@ Route::prefix('admin')
             Route::livewire('/clientes/{member}', MemberShow::class)->whereNumber('member')->name('members.show');
             Route::livewire('/clientes/{member}/editar', MemberForm::class)->whereNumber('member')->name('members.edit');
             Route::get('/clientes/{member}/foto', MemberPhotoController::class)->whereNumber('member')->name('members.photo');
+            Route::get('/clientes/{member}/codigo-acceso', MemberAccessCardController::class)->whereNumber('member')->name('members.access-card');
             Route::get('/documentos/{document}', DocumentDownloadController::class)->whereUuid('document')->name('documents.download');
 
+            Route::livewire('/asistencia', CheckInIndex::class)->name('check-ins.index');
             Route::livewire('/membresias', MembershipIndex::class)->name('memberships.index');
             Route::livewire('/pagos', PaymentIndex::class)->name('payments.index');
             Route::get('/comprobantes/{invoice}', InvoiceController::class)->whereNumber('invoice')->name('invoices.show');

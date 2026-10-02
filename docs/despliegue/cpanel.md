@@ -179,6 +179,12 @@ php artisan up
   `db:seed` añade el permiso `payments.discount` y el ajuste `memberships.grace_days` (por defecto 5, o el valor de
   `MEMBERSHIP_GRACE_DAYS` en el `.env`). Los días de gracia se cambian luego en *Ajustes*, en general o por sede.
   No requiere otro cron: el proceso diario va dentro de `schedule:run`. Verifíquelo con `php artisan schedule:list`.
+- **Fase 5 (check-in):** `migrate` crea las tablas de kioscos, códigos de acceso e ingresos; `db:seed` añade el ajuste
+  `check_ins.duplicate_minutes` (60 por defecto, o `CHECKIN_DUPLICATE_MINUTES` en el `.env`; se cambia en *Ajustes*).
+  El kiosco se abre en `https://app.profit-life.co/kiosco` en la tablet de la entrada y se vincula desde
+  *Sedes → (sede) → Kioscos*. La cámara solo funciona con HTTPS. El kiosco usa el encabezado `Authorization`:
+  el `public/.htaccess` del proyecto ya lo deja pasar; no lo reemplace. Los correos con el código QR salen por la
+  cola, así que dependen del cron de `schedule:run`.
 
 ## 9. Comprobaciones finales
 

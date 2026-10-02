@@ -16,7 +16,8 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 /**
- * Ajustes de membresías: días de gracia general y, opcionalmente, por sede.
+ * Ajustes de operación: días de gracia (general y por sede) y la ventana
+ * de ingresos repetidos del check-in.
  */
 #[Title('Ajustes')]
 class SettingsPage extends Component
@@ -24,6 +25,8 @@ class SettingsPage extends Component
     use InteractsWithToasts;
 
     public int|string $graceDays = 5;
+
+    public int|string $duplicateMinutes = 60;
 
     /** @var array<int|string, string> sede => días ('' = usa el general) */
     public array $locationGrace = [];
@@ -33,6 +36,7 @@ class SettingsPage extends Component
         $this->authorize(Permission::SettingsUpdate->value);
 
         $this->graceDays = $settings->graceDays();
+        $this->duplicateMinutes = $settings->checkInDuplicateMinutes();
 
         foreach ($this->locations() as $location) {
             $own = Setting::query()->where('group', 'memberships')->where('key', 'grace_days')->where('location_id', $location->id)->value('value');
@@ -46,12 +50,14 @@ class SettingsPage extends Component
 
         $this->validate([
             'graceDays' => ['required', 'integer', 'min:0', 'max:60'],
+            'duplicateMinutes' => ['required', 'integer', 'min:0', 'max:720'],
             'locationGrace' => ['array'],
             'locationGrace.*' => ['nullable', 'integer', 'min:0', 'max:60'],
-        ], [], ['graceDays' => 'días de gracia', 'locationGrace.*' => 'días de la sede']);
+        ], [], ['graceDays' => 'días de gracia', 'duplicateMinutes' => 'minutos', 'locationGrace.*' => 'días de la sede']);
 
-        $old = ['general' => $settings->graceDays()];
+        $old = ['general' => $settings->graceDays(), 'duplicate_minutes' => $settings->checkInDuplicateMinutes()];
         $settings->set('memberships', 'grace_days', (int) $this->graceDays);
+        $settings->set('check_ins', 'duplicate_minutes', (int) $this->duplicateMinutes);
 
         $validIds = $this->locations()->pluck('id')->all();
 
@@ -70,9 +76,13 @@ class SettingsPage extends Component
         $settings->flush();
 
         $audit->log('settings', AuditEvent::SettingsUpdated, null, auth()->user(), [
-            'key' => 'memberships.grace_days',
+            'key' => 'memberships.grace_days, check_ins.duplicate_minutes',
             'old' => $old,
-            'attributes' => ['general' => (int) $this->graceDays, 'por_sede' => array_filter($this->locationGrace, fn ($v) => $v !== '')],
+            'attributes' => [
+                'general' => (int) $this->graceDays,
+                'por_sede' => array_filter($this->locationGrace, fn ($v) => $v !== ''),
+                'duplicate_minutes' => (int) $this->duplicateMinutes,
+            ],
         ]);
 
         $this->toast('Ajustes guardados.');

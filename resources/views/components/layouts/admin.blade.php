@@ -4,6 +4,7 @@
     $nav = [
         ['label' => 'Inicio', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard', 'icon' => 'home', 'can' => 'dashboard.view'],
         ['label' => 'Clientes', 'route' => 'admin.members.index', 'active' => 'admin.members.*', 'icon' => 'heart', 'can' => 'members.view'],
+        ['label' => 'Asistencia', 'route' => 'admin.check-ins.index', 'active' => 'admin.check-ins.*', 'icon' => 'enter', 'can' => 'check-ins.view'],
         ['label' => 'Membresías', 'route' => 'admin.memberships.index', 'active' => 'admin.memberships.*', 'icon' => 'calendar', 'can' => 'memberships.view'],
         ['label' => 'Pagos', 'route' => 'admin.payments.index', 'active' => 'admin.payments.*', 'icon' => 'chart', 'can' => 'payments.view'],
         ['label' => 'Sedes', 'route' => 'admin.locations.index', 'active' => 'admin.locations.*', 'icon' => 'map-pin', 'can' => 'locations.view'],

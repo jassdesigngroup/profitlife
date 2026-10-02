@@ -21,6 +21,9 @@
                 </div>
             </div>
         </x-card>
+        <x-card title="Check-in: ingresos repetidos" description="Si el cliente vuelve a marcar dentro de estos minutos, se le deja pasar pero no se registra como un ingreso nuevo. 0 = desactivado.">
+            <x-input label="Minutos" type="number" min="0" max="720" wire:model="duplicateMinutes" class="sm:w-48" required />
+        </x-card>
         <div class="flex justify-end">
             <x-button type="submit" icon="check">Guardar ajustes</x-button>
         </div>

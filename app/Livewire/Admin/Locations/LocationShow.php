@@ -25,7 +25,7 @@ class LocationShow extends Component
         $this->authorize('view', $location);
         $this->locationId = $location->id;
 
-        if (! in_array($this->tab, ['hours', 'closures', 'rooms'], true)) {
+        if (! in_array($this->tab, ['hours', 'closures', 'rooms', 'kiosks'], true)) {
             $this->tab = 'hours';
         }
     }

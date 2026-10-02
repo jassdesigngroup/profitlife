@@ -52,7 +52,7 @@
     "src": "_inter-700-normal-Yt3aPRUw.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-CpdiZ4Xp.css",
+    "file": "assets/app-COPh6E07.css",
     "name": "app",
     "names": [
       "app.css"
@@ -64,6 +64,12 @@
     "file": "assets/app-BvRk9kiK.js",
     "name": "app",
     "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/js/kiosk.js": {
+    "file": "assets/kiosk-BVXubcqS.js",
+    "name": "kiosk",
+    "src": "resources/js/kiosk.js",
     "isEntry": true
   }
 }

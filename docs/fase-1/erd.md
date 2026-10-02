@@ -337,6 +337,15 @@ check_ins                               -- solo inserción; registra aceptados y
   INDEX (location_id, checked_in_at), INDEX (member_id, checked_in_at)
 ```
 
+Reglas (Fase 5):
+
+- El kiosco es una página pública (`/kiosco`) que llama a `/api/kiosk/*` con el token Sanctum del dispositivo (`tokenable = kiosk_device`, habilidad `kiosk:check-in`). El token se entrega una sola vez en un enlace de vinculación (`/kiosco#vincular=…`); generar uno nuevo revoca el anterior.
+- Un nuevo ingreso del mismo cliente dentro de `check_ins.duplicate_minutes` (ajuste, 60 por defecto) se guarda como `rejected / duplicate`, pero el kiosco lo deja pasar.
+- En los planes con límite, se cuenta como máximo un ingreso por día local; la semana o el mes se anclan al inicio de la membresía (`term` = toda la vigencia).
+- Un comprobante abierto dentro de la gracia no impide entrar (solo avisa). Fuera de horario o en un cierre también se acepta con aviso.
+- Autorizar un rechazo (`check-ins.override`) crea un ingreso aceptado nuevo con `method = manual`; el motivo y el rechazo original quedan en `activity_log` (evento `check_in_overridden`), sin columnas adicionales.
+- `membership_code` queda reservado: en esta fase solo se emiten credenciales `qr`.
+
 ## 7. Servicios y citas
 
 ```

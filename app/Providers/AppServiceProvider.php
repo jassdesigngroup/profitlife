@@ -7,6 +7,9 @@ use App\Domain\Audit\Policies\ActivityPolicy;
 use App\Domain\Billing\Events\InvoiceSettled;
 use App\Domain\Billing\Models\Invoice;
 use App\Domain\Billing\Models\Payment;
+use App\Domain\CheckIns\Models\CheckIn;
+use App\Domain\CheckIns\Models\KioskDevice;
+use App\Domain\CheckIns\Models\MemberAccessCredential;
 use App\Domain\Consents\Models\Consent;
 use App\Domain\Consents\Models\ConsentTemplate;
 use App\Domain\Documents\Models\Document;
@@ -32,11 +35,14 @@ use App\Http\Admin\Middleware\EnsureTwoFactorIsConfirmed;
 use App\Http\Admin\Middleware\EnsureUserIsActive;
 use App\Support\Locations\CurrentLocation;
 use Carbon\CarbonImmutable;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Livewire;
@@ -55,6 +61,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Date::use(CarbonImmutable::class);
+
+        // Kiosco: por dispositivo; los intentos de PIN tienen su propio límite.
+        RateLimiter::for('kiosk', fn (Request $request) => Limit::perMinute(60)->by('kiosk:'.($request->user()?->getKey() ?? $request->ip())));
 
         Model::preventSilentlyDiscardingAttributes(! $this->app->isProduction());
 
@@ -78,6 +87,9 @@ class AppServiceProvider extends ServiceProvider
             'membership' => Membership::class,
             'invoice' => Invoice::class,
             'payment' => Payment::class,
+            'kiosk_device' => KioskDevice::class,
+            'member_access_credential' => MemberAccessCredential::class,
+            'check_in' => CheckIn::class,
             'role' => Role::class,
             'permission' => Permission::class,
         ]);
