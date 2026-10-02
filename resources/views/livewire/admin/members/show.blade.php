@@ -32,7 +32,11 @@
                         <span>{{ $member->homeLocation?->name }}</span>
                         @if ($member->age() !== null)<span>· {{ $member->age() }} años</span>@endif
                         @if ($member->isMinor())<x-badge color="warning">Menor de edad</x-badge>@endif
-                        @if ($member->user_id)<x-badge color="info">También es staff</x-badge>@endif
+                        @if ($member->user?->staff)
+                            <x-badge color="info">También es staff</x-badge>
+                        @elseif ($member->user_id)
+                            <x-badge color="info">Con cuenta de acceso</x-badge>
+                        @endif
                     </div>
                     <x-field-error name="photo" class="text-red-300" />
                 </div>

@@ -142,7 +142,7 @@ class MemberShow extends Component
 
     public function render(): View
     {
-        $member = $this->member()->load(['homeLocation:id,name', 'creator:id,name']);
+        $member = $this->member()->load(['homeLocation:id,name', 'creator:id,name', 'user.staff']);
         $this->authorize('view', $member);
 
         return view('livewire.admin.members.show', [
