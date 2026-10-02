@@ -87,6 +87,7 @@ enum Permission: string
     case ClinicalNotesUpdate = 'clinical-notes.update';
     case ClinicalNotesSign = 'clinical-notes.sign';
     case ClinicalNotesExport = 'clinical-notes.export';
+    case ClinicalNotesEmergency = 'clinical-notes.emergency';
 
     // Entrenamiento (Fase 8)
     case TrainingView = 'training.view';
@@ -225,6 +226,7 @@ enum Permission: string
             self::ClinicalNotesUpdate => 'Editar notas clínicas',
             self::ClinicalNotesSign => 'Firmar notas clínicas',
             self::ClinicalNotesExport => 'Exportar historia clínica',
+            self::ClinicalNotesEmergency => 'Acceso de emergencia a historias clínicas',
             self::TrainingView => 'Ver programas de entrenamiento',
             self::TrainingCreate => 'Crear programas de entrenamiento',
             self::TrainingUpdate => 'Editar programas de entrenamiento',

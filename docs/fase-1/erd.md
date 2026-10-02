@@ -545,6 +545,14 @@ clinical_access_logs                    -- solo inserción
   INDEX (member_id, created_at), INDEX (user_id, created_at)
 ```
 
+Reglas (Fase 7):
+
+- El contenido clínico solo lo ve el equipo tratante vigente (`physiotherapy_record_staff` sin `revoked_at`) con el permiso `clinical-notes.view`. Recepción, gerencia y administración ven solo datos administrativos (existencia del expediente, responsable, equipo, número y fecha de sesiones). El Administrador no tiene permisos clínicos.
+- Quien abre el expediente queda como responsable; entran también los profesionales con citas clínicas del paciente, y una cita de un servicio con `is_clinical` agrega a su profesional. El responsable o quien tenga `staff.update` gestiona el equipo.
+- Acceso de emergencia (`clinical-notes.emergency`, solo Super Admin por defecto): con motivo, abre la historia en solo lectura por 2 horas; se guarda como `clinical_access_logs.action = emergency` (sin columnas nuevas), el motivo va a `activity_log` y se avisa por correo al responsable.
+- Las notas usan plantillas (evaluación inicial o SOAP) guardadas como JSON cifrado en `clinical_notes.body`. Se firman reingresando la contraseña y quedan inmutables; las correcciones son adendas firmadas. La evaluación inicial no se firma sin un consentimiento `clinical_treatment` vigente.
+- Toda lectura, creación, edición, firma, descarga de documento clínico y exportación a PDF queda en `clinical_access_logs`. Un cliente con historia clínica no se puede eliminar.
+
 Los ejercicios que prescribe el fisioterapeuta no tienen tabla propia: son un `training_program` de tipo `rehab` enlazado al plan de tratamiento. Así se reutiliza la biblioteca de ejercicios y la vista del portal.
 
 ## 9. Entrenamiento
@@ -863,4 +871,4 @@ settings
 | ¿Factura electrónica DIAN? | Tabla `fiscal_documents`, datos fiscales del cliente (tipo de persona, NIT). |
 | ¿Fisioterapia sin membresía? | Ninguno: `members` no exige membresía. |
 | ¿Fisioterapia factura a aseguradoras o EPS? | Tablas `insurers` y `insurance_authorizations`. |
-| ¿El Administrador ve notas clínicas? | Ninguno en tablas; solo cambia la Policy. |
+| ¿El Administrador ve notas clínicas? | **Decidido (Fase 7): no.** Solo el equipo tratante; el Super Admin, con acceso de emergencia auditado. |
