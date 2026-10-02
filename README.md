@@ -4,6 +4,7 @@ Sistema web multi-sede para un centro de acondicionamiento físico y fisioterapi
 Monolito Laravel 13 · PHP 8.3 · MySQL 8 · Blade + Livewire 4 + Tailwind 4 + Alpine.
 
 El esquema aprobado está en [`docs/fase-1/erd.md`](docs/fase-1/erd.md).
+Despliegue en producción (cPanel, `app.profit-life.co`): [`docs/despliegue/cpanel.md`](docs/despliegue/cpanel.md).
 
 ## Puesta en marcha local
 
