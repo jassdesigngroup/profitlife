@@ -11,14 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Solo autenticación: los datos de negocio viven en `staff` y `members`.
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->string('name', 150);
+            $table->string('email', 190)->unique();
+            $table->dateTime('email_verified_at')->nullable();
+            $table->string('password', 255)->nullable(); // nulo hasta aceptar la invitación
+            $table->text('two_factor_secret')->nullable();
+            $table->text('two_factor_recovery_codes')->nullable();
+            $table->dateTime('two_factor_confirmed_at')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->string('locale', 5)->default('es_CO');
+            $table->dateTime('last_login_at')->nullable();
+            $table->string('last_login_ip', 45)->nullable();
             $table->rememberToken();
-            $table->timestamps();
+            $table->datetimes();
+            $table->softDeletesDatetime();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
