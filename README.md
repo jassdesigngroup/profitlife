@@ -1,7 +1,7 @@
 # PROFITLIFE
 
 Sistema web multi-sede para un centro de acondicionamiento físico y fisioterapia.
-Monolito Laravel 13 · PHP 8.3 · MySQL 8 · Blade + Livewire 4 + Tailwind 4 + Alpine.
+Monolito Laravel 13 · PHP 8.3/8.4 · MySQL 8 o MariaDB 11.4 · Blade + Livewire 4 + Tailwind 4 + Alpine.
 
 El esquema aprobado está en [`docs/fase-1/erd.md`](docs/fase-1/erd.md).
 Despliegue en producción (cPanel, `app.profit-life.co`): [`docs/despliegue/cpanel.md`](docs/despliegue/cpanel.md).
@@ -53,6 +53,7 @@ en su primer ingreso: el panel los lleva a *Mi perfil → Seguridad*.
 
 ```bash
 vendor/bin/pest          # usa MySQL (base profitlife_testing, ver phpunit.xml)
+DB_CONNECTION=mariadb vendor/bin/pest   # contra MariaDB (producción)
 vendor/bin/pint          # estilo de código
 ```
 

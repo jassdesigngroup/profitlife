@@ -4,15 +4,20 @@ Guía para publicar PROFITLIFE en un hosting cPanel con el subdominio `app.profi
 `USUARIO` es su usuario de cPanel: en este hosting es `profitlife` (carpeta `/home/profitlife`).
 El servidor web es LiteSpeed (existe la carpeta `lscache`); es compatible con el `.htaccess` de Laravel.
 
-## 0. Requisitos del hosting (verificar antes)
+## 0. Requisitos del hosting
 
-| Requisito | Dónde se ve en cPanel | Nota |
+Verificado en este hosting (octubre de 2026):
+
+| Requisito | Servidor | Estado |
 |---|---|---|
-| PHP 8.3 o superior | *MultiPHP Manager* | Laravel 13 no funciona con 8.2 o menos. |
-| Extensiones `intl`, `pdo_mysql`, `mbstring`, `bcmath`, `fileinfo`, `sodium`, `openssl`, `gd`, `zip` | *Select PHP Version → Extensions* | `intl` es obligatoria (formato de moneda y fechas). |
-| MySQL 8 | *MySQL Databases* (abajo indica la versión del servidor) | Si el servidor es **MariaDB**, avíseme antes de continuar: el sistema se probó en MySQL 8. |
-| Acceso SSH o *Terminal* | *Terminal* o *SSH Access* | Necesario para `composer` y `php artisan`. |
-| Cron jobs | *Cron Jobs* | Para la cola de correos. |
+| PHP 8.3 o superior | PHP 8.4 | ✅ Suite completa probada con PHP 8.4 |
+| Base de datos | MariaDB 11.4.13 | ✅ Suite completa probada con MariaDB 11.4.13 (conexión `mariadb`) |
+| Extensiones `intl`, `pdo_mysql`, `mbstring`, `bcmath`, `fileinfo`, `sodium`, `openssl`, `gd`, `zip` | *Select PHP Version → Extensions* | Revisar que `intl` esté activa |
+| Acceso SSH o *Terminal* | *Terminal* o *SSH Access* | Necesario para `composer` y `php artisan` |
+| Cron jobs | *Cron Jobs* | Para la cola de correos |
+
+En MariaDB las columnas JSON se guardan como `LONGTEXT` con validación JSON; Laravel lo maneja de forma
+transparente y no cambia nada del ERD.
 
 ## 1. Subdominio y SSL
 
@@ -101,7 +106,7 @@ APP_CURRENCY=COP
 LOG_STACK=daily
 LOG_LEVEL=warning
 
-DB_CONNECTION=mysql
+DB_CONNECTION=mariadb
 DB_HOST=localhost
 DB_PORT=3306
 DB_DATABASE=profitlife_app
