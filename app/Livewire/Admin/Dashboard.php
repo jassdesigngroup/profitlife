@@ -5,6 +5,8 @@ namespace App\Livewire\Admin;
 use App\Domain\Identity\Enums\Permission;
 use App\Domain\Locations\Models\Location;
 use App\Domain\Locations\Models\Room;
+use App\Domain\Members\Enums\MemberStatus;
+use App\Domain\Members\Models\Member;
 use App\Domain\Staff\Enums\StaffStatus;
 use App\Domain\Staff\Models\Staff;
 use App\Support\Locations\CurrentLocation;
@@ -32,6 +34,9 @@ class Dashboard extends Component
         $locationId = $current->id();
 
         $stats = [
+            'members' => $user->can(Permission::MembersView->value)
+                ? Member::query()->where('status', MemberStatus::Active)->inLocation($locationId)->count()
+                : null,
             'locations' => $user->can(Permission::LocationsView->value)
                 ? Location::query()->active()->inLocation($locationId)->count()
                 : null,

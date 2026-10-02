@@ -83,7 +83,7 @@ class AuditIndex extends Component
 
         return view('livewire.admin.audit.index', [
             'activities' => $activities,
-            'logs' => collect(['auth', 'users', 'staff', 'locations', 'roles', 'settings'])->mapWithKeys(fn ($l) => [$l => AuditEvent::logNameLabel($l)])->all(),
+            'logs' => collect(['auth', 'users', 'staff', 'locations', 'roles', 'members', 'documents', 'consents', 'settings'])->mapWithKeys(fn ($l) => [$l => AuditEvent::logNameLabel($l)])->all(),
             'events' => AuditEvent::options(),
         ]);
     }

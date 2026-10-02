@@ -2,11 +2,17 @@
 
 namespace Database\Seeders;
 
+use App\Domain\Consents\Enums\ConsentType;
+use App\Domain\Consents\Models\ConsentTemplate;
 use App\Domain\Identity\Enums\RoleName;
 use App\Domain\Identity\Models\User;
 use App\Domain\Locations\Enums\DayOfWeek;
 use App\Domain\Locations\Enums\RoomType;
 use App\Domain\Locations\Models\Location;
+use App\Domain\Members\Enums\MemberStatus;
+use App\Domain\Members\Models\EmergencyContact;
+use App\Domain\Members\Models\Member;
+use App\Domain\Members\Services\MemberNumber;
 use App\Domain\Shared\Enums\DocumentType;
 use App\Domain\Staff\Enums\StaffStatus;
 use App\Domain\Staff\Models\Staff;
@@ -69,15 +75,68 @@ class DevelopmentSeeder extends Seeder
         $this->staff('fisio@profitlife.test', 'Daniel', 'Pinzón', RoleName::Physiotherapist, [$cabecera, $provenza], 'Fisioterapeuta', bookable: true, license: 'TP-123456');
         $this->staff('entrenador@profitlife.test', 'Juliana', 'Rueda', RoleName::Trainer, [$provenza], 'Entrenadora', bookable: true);
 
-        // Cliente: solo usuario; el perfil `members` llega en la Fase 3.
-        $member = User::query()->firstOrCreate(['email' => 'cliente@profitlife.test'], [
+        // Cliente con cuenta (el portal llega en una fase posterior).
+        $memberUser = User::query()->firstOrCreate(['email' => 'cliente@profitlife.test'], [
             'name' => 'Mateo Gómez',
             'password' => Hash::make(self::PASSWORD),
             'email_verified_at' => now(),
         ]);
-        $member->syncRoles([RoleName::Member->value]);
+        $memberUser->syncRoles([RoleName::Member->value]);
+
+        $this->members($cabecera, $provenza, $memberUser);
+        $this->consentTemplates();
 
         Activity::enableLogging();
+    }
+
+    private function members(Location $cabecera, Location $provenza, User $memberUser): void
+    {
+        if (Member::query()->withoutGlobalScopes()->exists()) {
+            return;
+        }
+
+        $numbers = app(MemberNumber::class);
+        $create = function (array $attributes) use ($numbers): Member {
+            $member = Member::factory()->create($attributes);
+            $member->forceFill(['member_number' => $numbers->for($member->id)])->saveQuietly();
+
+            return $member;
+        };
+
+        $mateo = $create([
+            'home_location_id' => $cabecera->id,
+            'user_id' => $memberUser->id,
+            'first_name' => 'Mateo',
+            'last_name' => 'Gómez',
+            'email' => $memberUser->email,
+        ]);
+        EmergencyContact::factory()->for($mateo)->create(['name' => 'Lucía Gómez', 'relationship' => 'Madre', 'is_primary' => true]);
+
+        foreach (range(1, 18) as $i) {
+            $member = $create(['home_location_id' => $i % 3 === 0 ? $provenza->id : $cabecera->id]);
+            EmergencyContact::factory()->for($member)->create(['is_primary' => true]);
+        }
+
+        $create(['home_location_id' => $cabecera->id, 'status' => MemberStatus::Inactive]);
+        $create(['home_location_id' => $provenza->id, 'status' => MemberStatus::Blocked]);
+    }
+
+    /**
+     * Textos de ejemplo para desarrollo. En producción el texto legal lo
+     * redacta y publica el centro desde el panel.
+     */
+    private function consentTemplates(): void
+    {
+        $templates = [
+            [ConsentType::DataProcessing, 'Autorización de tratamiento de datos personales', 'BORRADOR DE EJEMPLO. Autorizo al centro a recolectar, almacenar y usar mis datos personales para la prestación de sus servicios, conforme a la Ley 1581 de 2012 y su política de tratamiento de datos. Conozco mis derechos a conocer, actualizar, rectificar y suprimir mis datos y a revocar esta autorización.'],
+            [ConsentType::ClinicalTreatment, 'Consentimiento informado de fisioterapia', 'BORRADOR DE EJEMPLO. Declaro que me explicaron el objetivo, los beneficios y los posibles riesgos de la evaluación y el tratamiento de fisioterapia, y que acepto recibirlos.'],
+            [ConsentType::ImageUse, 'Autorización de uso de imagen', 'BORRADOR DE EJEMPLO. Autorizo el uso de fotografías y videos en los que aparezca, tomados en las instalaciones, para fines de comunicación del centro.'],
+            [ConsentType::Liability, 'Declaración de aptitud y exoneración', 'BORRADOR DE EJEMPLO. Declaro que me encuentro en condiciones de realizar actividad física y que informaré al personal sobre cualquier condición de salud relevante.'],
+        ];
+
+        foreach ($templates as [$type, $title, $body]) {
+            ConsentTemplate::query()->firstOrCreate(['type' => $type, 'version' => 1], ['title' => $title, 'body' => $body, 'is_active' => true]);
+        }
     }
 
     /**

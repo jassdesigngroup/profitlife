@@ -121,6 +121,7 @@ members
   address_line      VARCHAR(255) NULL
   city, department  VARCHAR(100) NULL
   photo_path        VARCHAR(255) NULL
+  checkin_pin_hash  VARCHAR(255) NULL               -- hash del PIN de 4 dígitos; nulo = sin PIN
   status            VARCHAR(30)                     -- active | inactive | blocked
   joined_on         DATE
   created_by        FK users NULL
@@ -833,8 +834,8 @@ settings
 
 | Pregunta pendiente | Qué cambiaría |
 |---|---|
-| ¿Hay clientes menores de edad? | Tabla `member_guardians` (acudiente) y consentimientos firmados por el acudiente. |
-| ¿Check-in por teléfono con PIN? | Columna `checkin_pin_hash` en `members`. |
+| ¿Hay clientes menores de edad? | **Pendiente.** Si se confirma: tabla `member_guardians` (acudiente), migración aditiva. Mientras tanto el formulario avisa cuando el cliente es menor y `consents.signed_name` admite el nombre del acudiente. |
+| ¿Check-in por teléfono con PIN? | **Decidido (Fase 3): sí.** PIN de 4 dígitos, opcional, guardado como hash en `members.checkin_pin_hash`. Sin PIN no hay check-in por teléfono. |
 | ¿Hay clases grupales? | Tablas `class_sessions` y `class_bookings`; `appointments` no cubre cupos. |
 | ¿Factura electrónica DIAN? | Tabla `fiscal_documents`, datos fiscales del cliente (tipo de persona, NIT). |
 | ¿Fisioterapia sin membresía? | Ninguno: `members` no exige membresía. |

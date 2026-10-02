@@ -57,6 +57,7 @@ enum Permission: string
     case MembersUpdate = 'members.update';
     case MembersDelete = 'members.delete';
     case MembersExport = 'members.export';
+    case ConsentTemplatesManage = 'consent-templates.manage';
 
     // Membresías (Fase 4)
     case MembershipsView = 'memberships.view';
@@ -130,6 +131,7 @@ enum Permission: string
             'audit' => 'Auditoría',
             'settings' => 'Ajustes',
             'members' => 'Clientes',
+            'consent-templates' => 'Plantillas de consentimiento',
             'memberships' => 'Membresías',
             'check-ins' => 'Check-in',
             'appointments' => 'Citas',
@@ -196,6 +198,7 @@ enum Permission: string
             self::MembersUpdate => 'Editar clientes',
             self::MembersDelete => 'Eliminar clientes',
             self::MembersExport => 'Exportar clientes',
+            self::ConsentTemplatesManage => 'Gestionar plantillas de consentimiento',
             self::MembershipsView => 'Ver membresías',
             self::MembershipsCreate => 'Vender membresías',
             self::MembershipsUpdate => 'Editar membresías',

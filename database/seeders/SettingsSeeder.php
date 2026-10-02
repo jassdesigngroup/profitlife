@@ -25,5 +25,9 @@ class SettingsSeeder extends Seeder
                 $settings->set('general', $key, $value);
             }
         }
+
+        if ($settings->get('members', 'number_prefix') === null) {
+            $settings->set('members', 'number_prefix', config('profitlife.members.number_prefix'));
+        }
     }
 }

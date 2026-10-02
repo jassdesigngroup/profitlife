@@ -96,6 +96,7 @@ APP_URL=https://app.profit-life.co
 APP_DISPLAY_TIMEZONE=America/Bogota
 APP_LOCALE=es_CO
 APP_CURRENCY=COP
+MEMBER_NUMBER_PREFIX=PL
 
 LOG_STACK=daily
 LOG_LEVEL=warning
@@ -165,6 +166,13 @@ php artisan optimize
 php artisan up
 ```
 
+
+### Notas por versión
+
+- **Fase 3 (clientes):** antes de `db:seed`, añada al `.env` la línea `MEMBER_NUMBER_PREFIX=PL`
+  (prefijo del número visible de cliente, p. ej. `PL-000123`). El seeder lo guarda en `settings`;
+  si se omite, los clientes se numeran con el prefijo genérico `CL`.
+  Los documentos y fotos de clientes se guardan en `storage/app/private`, fuera de la web: inclúyalo en las copias de seguridad.
 
 ## 9. Comprobaciones finales
 
