@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Domain\Appointments\Models\Appointment;
+use App\Domain\Appointments\Models\Service;
+use App\Domain\Appointments\Models\SessionCredit;
 use App\Domain\Audit\Listeners\AuthenticationActivitySubscriber;
 use App\Domain\Audit\Policies\ActivityPolicy;
 use App\Domain\Billing\Events\InvoiceSettled;
@@ -30,6 +33,8 @@ use App\Domain\Notifications\Models\NotificationLog;
 use App\Domain\Settings\Models\Setting;
 use App\Domain\Settings\Services\Settings;
 use App\Domain\Staff\Models\Staff;
+use App\Domain\Staff\Models\StaffSchedule;
+use App\Domain\Staff\Models\StaffTimeOff;
 use App\Http\Admin\Middleware\EnsureCanAccessAdmin;
 use App\Http\Admin\Middleware\EnsureTwoFactorIsConfirmed;
 use App\Http\Admin\Middleware\EnsureUserIsActive;
@@ -90,6 +95,11 @@ class AppServiceProvider extends ServiceProvider
             'kiosk_device' => KioskDevice::class,
             'member_access_credential' => MemberAccessCredential::class,
             'check_in' => CheckIn::class,
+            'service' => Service::class,
+            'appointment' => Appointment::class,
+            'session_credit' => SessionCredit::class,
+            'staff_schedule' => StaffSchedule::class,
+            'staff_time_off' => StaffTimeOff::class,
             'role' => Role::class,
             'permission' => Permission::class,
         ]);

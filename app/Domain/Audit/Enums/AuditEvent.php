@@ -59,6 +59,14 @@ enum AuditEvent: string
     case AccessCodeIssued = 'access_code_issued';
     case AccessCodeRevoked = 'access_code_revoked';
     case AccessCodeSent = 'access_code_sent';
+    case AppointmentBooked = 'appointment_booked';
+    case AppointmentRescheduled = 'appointment_rescheduled';
+    case AppointmentCancelled = 'appointment_cancelled';
+    case AppointmentStatusChanged = 'appointment_status_changed';
+    case CreditsAdjusted = 'credits_adjusted';
+    case ScheduleUpdated = 'schedule_updated';
+    case TimeOffSaved = 'time_off_saved';
+    case TimeOffRemoved = 'time_off_removed';
     case Created = 'created';
     case Updated = 'updated';
     case Deleted = 'deleted';
@@ -114,6 +122,14 @@ enum AuditEvent: string
             self::AccessCodeIssued => 'Código de acceso generado',
             self::AccessCodeRevoked => 'Código de acceso anulado',
             self::AccessCodeSent => 'Código de acceso enviado',
+            self::AppointmentBooked => 'Cita agendada',
+            self::AppointmentRescheduled => 'Cita reprogramada',
+            self::AppointmentCancelled => 'Cita cancelada',
+            self::AppointmentStatusChanged => 'Estado de cita cambiado',
+            self::CreditsAdjusted => 'Sesiones ajustadas',
+            self::ScheduleUpdated => 'Disponibilidad modificada',
+            self::TimeOffSaved => 'Ausencia registrada',
+            self::TimeOffRemoved => 'Ausencia eliminada',
             self::Created => 'Creación',
             self::Updated => 'Modificación',
             self::Deleted => 'Eliminación',
@@ -132,6 +148,9 @@ enum AuditEvent: string
             self::MembershipSold, self::MembershipRenewed, self::PaymentRecorded => 'success',
             self::CheckInOverridden, self::AccessCodeRevoked => 'warning',
             self::KioskPaired, self::AccessCodeIssued => 'info',
+            self::AppointmentBooked => 'success',
+            self::AppointmentCancelled => 'danger',
+            self::AppointmentRescheduled, self::CreditsAdjusted, self::TimeOffSaved => 'warning',
             self::DocumentDownloaded, self::AccessCodeSent => 'info',
             default => 'neutral',
         };
@@ -162,6 +181,7 @@ enum AuditEvent: string
             'memberships' => 'Membresías',
             'billing' => 'Pagos',
             'check_ins' => 'Check-in',
+            'appointments' => 'Citas',
             default => (string) $logName,
         };
     }
