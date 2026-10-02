@@ -29,7 +29,11 @@
     </div>
 
     <nav class="mb-5 flex gap-1 overflow-x-auto border-b border-steel-200" aria-label="Pestañas">
-        @foreach (['hours' => ['Horarios', 'clock'], 'closures' => ['Cierres y festivos', 'calendar'], 'rooms' => ['Salas', 'squares']] as $key => [$label, $icon])
+        @php
+            $tabs = ['hours' => ['Horarios', 'clock'], 'closures' => ['Cierres y festivos', 'calendar'], 'rooms' => ['Salas', 'squares']];
+            if (auth()->user()->can('viewAny', [\App\Domain\CheckIns\Models\KioskDevice::class, $location])) { $tabs['kiosks'] = ['Kioscos', 'tablet']; }
+        @endphp
+        @foreach ($tabs as $key => [$label, $icon])
             <button type="button" wire:click="$set('tab', '{{ $key }}')" @class([
                 '-mb-px flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-semibold',
                 'border-brand-500 text-ink-950' => $tab === $key,
@@ -44,6 +48,8 @@
         <livewire:admin.locations.location-hours :location-id="$location->id" :key="'hours-'.$location->id" />
     @elseif ($tab === 'closures')
         <livewire:admin.locations.location-closures :location-id="$location->id" :key="'closures-'.$location->id" />
+    @elseif ($tab === 'kiosks')
+        <livewire:admin.locations.location-kiosks :location-id="$location->id" :key="'kiosks-'.$location->id" />
     @else
         <livewire:admin.locations.location-rooms :location-id="$location->id" :key="'rooms-'.$location->id" />
     @endif

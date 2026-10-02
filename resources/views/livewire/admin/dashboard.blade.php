@@ -2,7 +2,7 @@
     $hour = now()->setTimezone(app(\App\Domain\Settings\Services\Settings::class)->displayTimezone())->hour;
     $greeting = $hour < 12 ? 'Buenos días' : ($hour < 19 ? 'Buenas tardes' : 'Buenas noches');
     $cards = [
-        ['label' => 'Check-ins de hoy', 'icon' => 'bolt', 'value' => null, 'phase' => 'Fase 5'],
+        ['label' => 'Asistencias de hoy', 'icon' => 'enter', 'value' => $kpis['checkins'], 'phase' => null, 'route' => 'admin.check-ins.index'],
         ['label' => 'Membresías activas', 'icon' => 'heart', 'value' => $kpis['memberships'], 'phase' => null, 'route' => 'admin.memberships.index'],
         ['label' => 'Citas de hoy', 'icon' => 'calendar', 'value' => null, 'phase' => 'Fase 6'],
         ['label' => 'Ingresos del mes', 'icon' => 'chart', 'value' => $kpis['income'], 'phase' => null, 'route' => 'admin.payments.index'],
