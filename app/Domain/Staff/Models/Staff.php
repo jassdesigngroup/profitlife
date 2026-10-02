@@ -2,6 +2,7 @@
 
 namespace App\Domain\Staff\Models;
 
+use App\Domain\Audit\Enums\AuditEvent;
 use App\Domain\Identity\Models\User;
 use App\Domain\Locations\Models\Location;
 use App\Domain\Shared\Enums\DocumentType;
@@ -130,6 +131,7 @@ class Staff extends Model
             ->useLogName('staff')
             ->logOnly(['first_name', 'last_name', 'job_title', 'professional_license', 'calendar_color', 'is_bookable', 'status', 'hired_on'])
             ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn (string $event) => AuditEvent::describeModelEvent('staff', $event));
     }
 }

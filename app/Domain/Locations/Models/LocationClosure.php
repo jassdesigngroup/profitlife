@@ -2,6 +2,7 @@
 
 namespace App\Domain\Locations\Models;
 
+use App\Domain\Audit\Enums\AuditEvent;
 use Database\Factories\LocationClosureFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
@@ -57,6 +58,7 @@ class LocationClosure extends Model
             ->useLogName('locations')
             ->logOnly(['location_id', 'closed_on', 'reason'])
             ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn (string $event) => AuditEvent::describeModelEvent('cierre', $event));
     }
 }

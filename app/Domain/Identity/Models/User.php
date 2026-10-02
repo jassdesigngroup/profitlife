@@ -2,8 +2,10 @@
 
 namespace App\Domain\Identity\Models;
 
+use App\Domain\Audit\Enums\AuditEvent;
 use App\Domain\Identity\Enums\Permission;
 use App\Domain\Identity\Enums\RoleName;
+use App\Domain\Identity\Notifications\ResetPasswordNotification;
 use App\Domain\Staff\Models\Staff;
 use App\Support\Scopes\LocationScope;
 use Database\Factories\UserFactory;
@@ -53,6 +55,11 @@ class User extends Authenticatable
     public function staff(): HasOne
     {
         return $this->hasOne(Staff::class)->withoutGlobalScope(LocationScope::class);
+    }
+
+    public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 
     public function isSuperAdmin(): bool
@@ -166,6 +173,7 @@ class User extends Authenticatable
             ->useLogName('users')
             ->logOnly(['name', 'email', 'is_active'])
             ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn (string $event) => AuditEvent::describeModelEvent('usuario', $event));
     }
 }

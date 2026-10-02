@@ -2,6 +2,7 @@
 
 namespace App\Domain\Locations\Models;
 
+use App\Domain\Audit\Enums\AuditEvent;
 use App\Domain\Locations\Enums\RoomType;
 use App\Domain\Locations\Policies\RoomPolicy;
 use App\Support\Concerns\HasLocationScope;
@@ -46,6 +47,7 @@ class Room extends Model
             ->useLogName('locations')
             ->logOnly(['location_id', 'name', 'type', 'capacity', 'is_active'])
             ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn (string $event) => AuditEvent::describeModelEvent('sala', $event));
     }
 }

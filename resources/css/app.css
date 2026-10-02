@@ -1,9 +1,68 @@
 @import 'tailwindcss';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../vendor/livewire/livewire/src/Features/SupportPagination/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
+@source '../../app/**/*.php';
 
+/*
+| Tokens de diseño.
+| - brand-500 #FD540D: naranja de marca para botones y acciones principales
+|   (texto blanco solo en negrita o tamaño grande: contraste 3.26:1).
+| - brand-700 #B83A06: enlaces y texto pequeño en naranja (5.76:1 sobre blanco).
+| - steel-500 #828282: bordes, iconos y texto secundario grande (3.84:1).
+| - steel-700 #5C5C5C: texto secundario de lectura (6.69:1).
+| - ink-950 #141414: texto principal y barra lateral (18.4:1).
+*/
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+    --font-display: var(--font-barlow-condensed), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+    --color-brand-50: #fff4ed;
+    --color-brand-100: #ffe5d4;
+    --color-brand-200: #ffc6a8;
+    --color-brand-500: #fd540d;
+    --color-brand-600: #e64a08;
+    --color-brand-700: #b83a06;
+    --color-brand-800: #92300b;
+
+    --color-steel-100: #f2f2f2;
+    --color-steel-200: #e4e4e4;
+    --color-steel-300: #cfcfcf;
+    --color-steel-500: #828282;
+    --color-steel-700: #5c5c5c;
+
+    --color-ink-800: #262626;
+    --color-ink-900: #1c1c1c;
+    --color-ink-950: #141414;
+
+    --color-canvas: #f6f6f4;
+    --color-surface: #ffffff;
+
+    --color-success-50: #ecfdf3;
+    --color-success-700: #15803d;
+    --color-warning-50: #fff8eb;
+    --color-warning-700: #92400e;
+    --color-danger-50: #fef2f2;
+    --color-danger-700: #b91c1c;
+    --color-info-50: #eff6ff;
+    --color-info-700: #1d4ed8;
+}
+
+@layer base {
+    html {
+        -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+        @apply bg-canvas text-ink-950;
+    }
+
+    :focus-visible {
+        @apply outline-2 outline-offset-2 outline-brand-500;
+    }
+
+    [x-cloak] {
+        display: none !important;
+    }
 }

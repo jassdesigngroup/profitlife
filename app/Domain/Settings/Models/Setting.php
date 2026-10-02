@@ -2,6 +2,7 @@
 
 namespace App\Domain\Settings\Models;
 
+use App\Domain\Audit\Enums\AuditEvent;
 use App\Domain\Locations\Models\Location;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
@@ -39,6 +40,7 @@ class Setting extends Model
             ->useLogName('settings')
             ->logOnly(['location_id', 'group', 'key', 'value'])
             ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn (string $event) => AuditEvent::describeModelEvent('ajuste', $event));
     }
 }

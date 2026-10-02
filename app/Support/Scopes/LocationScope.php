@@ -3,6 +3,7 @@
 namespace App\Support\Scopes;
 
 use App\Domain\Identity\Models\User;
+use App\Support\Concerns\HasLocationScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Scope;
@@ -28,7 +29,7 @@ class LocationScope implements Scope
             return;
         }
 
-        /** @var Model&\App\Support\Concerns\HasLocationScope $model */
+        /** @var Model&HasLocationScope $model */
         $model->applyLocationRestriction($builder, $user->accessibleLocationIds());
     }
 }

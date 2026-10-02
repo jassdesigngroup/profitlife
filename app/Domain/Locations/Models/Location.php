@@ -2,6 +2,7 @@
 
 namespace App\Domain\Locations\Models;
 
+use App\Domain\Audit\Enums\AuditEvent;
 use App\Domain\Locations\Policies\LocationPolicy;
 use App\Domain\Staff\Models\LocationStaff;
 use App\Domain\Staff\Models\Staff;
@@ -92,6 +93,7 @@ class Location extends Model
             ->useLogName('locations')
             ->logOnly(['name', 'slug', 'code', 'address_line', 'city', 'department', 'phone', 'email', 'timezone', 'is_active'])
             ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn (string $event) => AuditEvent::describeModelEvent('sede', $event));
     }
 }

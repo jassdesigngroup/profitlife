@@ -73,7 +73,10 @@ class StaffPolicy
         }
 
         $assignable = array_map(fn (RoleName $r) => $r->value, RoleName::assignableBy($user));
+        $staffRoles = array_map(fn (RoleName $r) => $r->value, RoleName::staffRoles());
 
-        return $staff->user->getRoleNames()->every(fn (string $role) => in_array($role, $assignable, true));
+        return $staff->user->getRoleNames()
+            ->intersect($staffRoles)
+            ->every(fn (string $role) => in_array($role, $assignable, true));
     }
 }
