@@ -49,7 +49,7 @@ class MemberShow extends Component
         $this->authorize('view', $member);
         $this->memberId = $member->id;
 
-        if (! in_array($this->tab, ['summary', 'notes', 'documents', 'consents'], true)) {
+        if (! in_array($this->tab, ['summary', 'memberships', 'billing', 'notes', 'documents', 'consents'], true)) {
             $this->tab = 'summary';
         }
     }

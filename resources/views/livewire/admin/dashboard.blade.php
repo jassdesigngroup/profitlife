@@ -1,11 +1,11 @@
 @php
     $hour = now()->setTimezone(app(\App\Domain\Settings\Services\Settings::class)->displayTimezone())->hour;
     $greeting = $hour < 12 ? 'Buenos días' : ($hour < 19 ? 'Buenas tardes' : 'Buenas noches');
-    $placeholders = [
-        ['label' => 'Check-ins de hoy', 'icon' => 'bolt', 'phase' => 'Fase 5'],
-        ['label' => 'Membresías activas', 'icon' => 'heart', 'phase' => 'Fase 4'],
-        ['label' => 'Citas de hoy', 'icon' => 'calendar', 'phase' => 'Fase 6'],
-        ['label' => 'Ingresos del mes', 'icon' => 'chart', 'phase' => 'Fase 4'],
+    $cards = [
+        ['label' => 'Check-ins de hoy', 'icon' => 'bolt', 'value' => null, 'phase' => 'Fase 5'],
+        ['label' => 'Membresías activas', 'icon' => 'heart', 'value' => $kpis['memberships'], 'phase' => null, 'route' => 'admin.memberships.index'],
+        ['label' => 'Citas de hoy', 'icon' => 'calendar', 'value' => null, 'phase' => 'Fase 6'],
+        ['label' => 'Ingresos del mes', 'icon' => 'chart', 'value' => $kpis['income'], 'phase' => null, 'route' => 'admin.payments.index'],
     ];
 @endphp
 <div>
@@ -22,14 +22,26 @@
 
     {{-- Indicadores de las fases siguientes --}}
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        @foreach ($placeholders as $card)
+        @foreach ($cards as $card)
             <div class="relative overflow-hidden rounded-xl bg-surface p-5 ring-1 ring-steel-200">
                 <div class="flex items-start justify-between">
                     <p class="text-sm font-semibold text-steel-700">{{ $card['label'] }}</p>
                     <span class="flex size-9 items-center justify-center rounded-lg bg-brand-50 text-brand-700"><x-icon :name="$card['icon']" class="size-5" /></span>
                 </div>
-                <p class="mt-3 font-display text-4xl font-bold text-steel-300" aria-label="Sin datos todavía">—</p>
-                <x-badge class="mt-3">Disponible en {{ $card['phase'] }}</x-badge>
+                @if ($card['phase'])
+                    <p class="mt-3 font-display text-4xl font-bold text-steel-300" aria-label="Sin datos todavía">—</p>
+                    <x-badge class="mt-3">Disponible en {{ $card['phase'] }}</x-badge>
+                @elseif ($card['value'] === null)
+                    <p class="mt-3 font-display text-4xl font-bold text-steel-300">—</p>
+                    <p class="mt-3 text-xs text-steel-700">Sin permiso para ver este dato.</p>
+                @else
+                    <a href="{{ route($card['route']) }}" wire:navigate class="mt-3 block font-display text-4xl font-bold text-ink-950 hover:text-brand-700">{{ $card['value'] }}</a>
+                    @if ($card['label'] === 'Ingresos del mes' && $kpis['overdue'])
+                        <x-badge color="danger" class="mt-3">{{ $kpis['overdue'] }} comprobantes en mora</x-badge>
+                    @else
+                        <p class="mt-3 text-xs text-steel-700">{{ $currentLocation?->name ?? 'Todas las sedes' }}</p>
+                    @endif
+                @endif
             </div>
         @endforeach
     </div>
