@@ -10,6 +10,7 @@ use App\Domain\Identity\Models\User;
 use App\Domain\Locations\Models\Location;
 use App\Domain\Locations\Models\Room;
 use App\Domain\Members\Models\Member;
+use App\Domain\Physiotherapy\Models\PhysiotherapySession;
 use App\Domain\Staff\Models\Staff;
 use App\Support\Concerns\HasLocationScope;
 use App\Support\Money;
@@ -23,6 +24,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -105,6 +107,16 @@ class Appointment extends Model
     public function statusHistories(): HasMany
     {
         return $this->hasMany(AppointmentStatusHistory::class)->latest('id');
+    }
+
+    /**
+     * Sesión de fisioterapia registrada para esta cita.
+     *
+     * @return HasOne<PhysiotherapySession, $this>
+     */
+    public function physiotherapySession(): HasOne
+    {
+        return $this->hasOne(PhysiotherapySession::class);
     }
 
     /**
