@@ -22,6 +22,18 @@ return [
 
     'locale' => env('APP_LOCALE', 'es_CO'),
 
+    'members' => [
+        // Prefijo del número visible de cliente (p. ej. PL-000123). Se puede cambiar en settings.
+        'number_prefix' => env('MEMBER_NUMBER_PREFIX', 'CL'),
+        'number_padding' => 6,
+    ],
+
+    'documents' => [
+        'disk' => env('DOCUMENTS_DISK', 'local'),
+        'max_kb' => 10240,
+        'mimes' => ['pdf', 'jpg', 'jpeg', 'png', 'webp'],
+    ],
+
     'invitations' => [
         'expires_hours' => (int) env('INVITATION_EXPIRES_HOURS', 72),
     ],

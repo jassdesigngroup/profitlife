@@ -29,6 +29,20 @@ enum AuditEvent: string
     case LocationsAssigned = 'locations_assigned';
     case HoursUpdated = 'hours_updated';
     case StatusChanged = 'status_changed';
+    case PinSet = 'pin_set';
+    case PinCleared = 'pin_cleared';
+    case PhotoUpdated = 'photo_updated';
+    case ContactSaved = 'contact_saved';
+    case ContactRemoved = 'contact_removed';
+    case NoteAdded = 'note_added';
+    case NoteUpdated = 'note_updated';
+    case NoteDeleted = 'note_deleted';
+    case DocumentUploaded = 'document_uploaded';
+    case DocumentDownloaded = 'document_downloaded';
+    case DocumentDeleted = 'document_deleted';
+    case ConsentAccepted = 'consent_accepted';
+    case ConsentRevoked = 'consent_revoked';
+    case TemplateVersionCreated = 'template_version_created';
     case Created = 'created';
     case Updated = 'updated';
     case Deleted = 'deleted';
@@ -54,6 +68,20 @@ enum AuditEvent: string
             self::LocationsAssigned => 'Sedes asignadas',
             self::HoursUpdated => 'Horarios modificados',
             self::StatusChanged => 'Estado cambiado',
+            self::PinSet => 'PIN de check-in asignado',
+            self::PinCleared => 'PIN de check-in eliminado',
+            self::PhotoUpdated => 'Foto actualizada',
+            self::ContactSaved => 'Contacto de emergencia guardado',
+            self::ContactRemoved => 'Contacto de emergencia eliminado',
+            self::NoteAdded => 'Nota añadida',
+            self::NoteUpdated => 'Nota modificada',
+            self::NoteDeleted => 'Nota eliminada',
+            self::DocumentUploaded => 'Documento subido',
+            self::DocumentDownloaded => 'Documento descargado',
+            self::DocumentDeleted => 'Documento eliminado',
+            self::ConsentAccepted => 'Consentimiento aceptado',
+            self::ConsentRevoked => 'Consentimiento revocado',
+            self::TemplateVersionCreated => 'Nueva versión de plantilla',
             self::Created => 'Creación',
             self::Updated => 'Modificación',
             self::Deleted => 'Eliminación',
@@ -66,7 +94,9 @@ enum AuditEvent: string
         return match ($this) {
             self::LoginFailed, self::Lockout, self::TwoFactorFailed, self::Deleted, self::TwoFactorDisabled => 'danger',
             self::RolesUpdated, self::PermissionsUpdated, self::StatusChanged => 'warning',
-            self::Created, self::Login, self::InvitationAccepted, self::TwoFactorEnabled => 'success',
+            self::Created, self::Login, self::InvitationAccepted, self::TwoFactorEnabled, self::ConsentAccepted => 'success',
+            self::ConsentRevoked, self::DocumentDeleted, self::NoteDeleted => 'warning',
+            self::DocumentDownloaded => 'info',
             default => 'neutral',
         };
     }
@@ -90,6 +120,9 @@ enum AuditEvent: string
             'locations' => 'Sedes',
             'roles' => 'Roles y permisos',
             'settings' => 'Ajustes',
+            'members' => 'Clientes',
+            'documents' => 'Documentos',
+            'consents' => 'Consentimientos',
             default => (string) $logName,
         };
     }

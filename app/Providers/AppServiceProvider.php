@@ -4,12 +4,18 @@ namespace App\Providers;
 
 use App\Domain\Audit\Listeners\AuthenticationActivitySubscriber;
 use App\Domain\Audit\Policies\ActivityPolicy;
+use App\Domain\Consents\Models\Consent;
+use App\Domain\Consents\Models\ConsentTemplate;
+use App\Domain\Documents\Models\Document;
 use App\Domain\Identity\Models\User;
 use App\Domain\Identity\Policies\RolePolicy;
 use App\Domain\Locations\Models\Location;
 use App\Domain\Locations\Models\LocationClosure;
 use App\Domain\Locations\Models\LocationHour;
 use App\Domain\Locations\Models\Room;
+use App\Domain\Members\Models\EmergencyContact;
+use App\Domain\Members\Models\Member;
+use App\Domain\Members\Models\MemberNote;
 use App\Domain\Notifications\Listeners\RecordNotificationLog;
 use App\Domain\Notifications\Models\NotificationLog;
 use App\Domain\Settings\Models\Setting;
@@ -56,6 +62,12 @@ class AppServiceProvider extends ServiceProvider
             'room' => Room::class,
             'setting' => Setting::class,
             'notification_log' => NotificationLog::class,
+            'member' => Member::class,
+            'emergency_contact' => EmergencyContact::class,
+            'member_note' => MemberNote::class,
+            'document' => Document::class,
+            'consent_template' => ConsentTemplate::class,
+            'consent' => Consent::class,
             'role' => Role::class,
             'permission' => Permission::class,
         ]);

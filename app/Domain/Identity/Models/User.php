@@ -6,6 +6,7 @@ use App\Domain\Audit\Enums\AuditEvent;
 use App\Domain\Identity\Enums\Permission;
 use App\Domain\Identity\Enums\RoleName;
 use App\Domain\Identity\Notifications\ResetPasswordNotification;
+use App\Domain\Members\Models\Member;
 use App\Domain\Staff\Models\Staff;
 use App\Support\Scopes\LocationScope;
 use Database\Factories\UserFactory;
@@ -55,6 +56,16 @@ class User extends Authenticatable
     public function staff(): HasOne
     {
         return $this->hasOne(Staff::class)->withoutGlobalScope(LocationScope::class);
+    }
+
+    /**
+     * Perfil de cliente, si lo tiene (una persona puede ser staff y cliente).
+     *
+     * @return HasOne<Member, $this>
+     */
+    public function member(): HasOne
+    {
+        return $this->hasOne(Member::class)->withoutGlobalScope(LocationScope::class);
     }
 
     public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void

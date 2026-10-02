@@ -61,6 +61,11 @@ class Settings
         return (string) $this->get('general', 'timezone', config('profitlife.display_timezone'));
     }
 
+    public function memberNumberPrefix(): string
+    {
+        return (string) $this->get('members', 'number_prefix', config('profitlife.members.number_prefix'));
+    }
+
     public function flush(): void
     {
         Cache::forget(self::CACHE_KEY);
