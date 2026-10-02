@@ -54,6 +54,11 @@ enum AuditEvent: string
     case PaymentVoided = 'payment_voided';
     case DiscountApplied = 'discount_applied';
     case SettingsUpdated = 'settings_updated';
+    case CheckInOverridden = 'check_in_overridden';
+    case KioskPaired = 'kiosk_paired';
+    case AccessCodeIssued = 'access_code_issued';
+    case AccessCodeRevoked = 'access_code_revoked';
+    case AccessCodeSent = 'access_code_sent';
     case Created = 'created';
     case Updated = 'updated';
     case Deleted = 'deleted';
@@ -104,6 +109,11 @@ enum AuditEvent: string
             self::PaymentVoided => 'Pago anulado',
             self::DiscountApplied => 'Descuento aplicado',
             self::SettingsUpdated => 'Ajustes modificados',
+            self::CheckInOverridden => 'Ingreso autorizado tras rechazo',
+            self::KioskPaired => 'Kiosco vinculado',
+            self::AccessCodeIssued => 'Código de acceso generado',
+            self::AccessCodeRevoked => 'Código de acceso anulado',
+            self::AccessCodeSent => 'Código de acceso enviado',
             self::Created => 'Creación',
             self::Updated => 'Modificación',
             self::Deleted => 'Eliminación',
@@ -120,7 +130,9 @@ enum AuditEvent: string
             self::ConsentRevoked, self::DocumentDeleted, self::NoteDeleted, self::DiscountApplied, self::MembershipFrozen => 'warning',
             self::InvoiceVoided, self::PaymentVoided, self::MembershipCancelled => 'danger',
             self::MembershipSold, self::MembershipRenewed, self::PaymentRecorded => 'success',
-            self::DocumentDownloaded => 'info',
+            self::CheckInOverridden, self::AccessCodeRevoked => 'warning',
+            self::KioskPaired, self::AccessCodeIssued => 'info',
+            self::DocumentDownloaded, self::AccessCodeSent => 'info',
             default => 'neutral',
         };
     }
@@ -149,6 +161,7 @@ enum AuditEvent: string
             'consents' => 'Consentimientos',
             'memberships' => 'Membresías',
             'billing' => 'Pagos',
+            'check_ins' => 'Check-in',
             default => (string) $logName,
         };
     }
