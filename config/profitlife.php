@@ -32,6 +32,13 @@ return [
         'grace_days' => (int) env('MEMBERSHIP_GRACE_DAYS', 5),
     ],
 
+    'appointments' => [
+        // Horas antes de la cita hasta las que se cancela sin descontar la sesión.
+        'cancellation_hours' => (int) env('APPOINTMENT_CANCELLATION_HOURS', 12),
+        // Minutos antes de la cita desde los que el kiosco deja entrar a quien no tiene membresía.
+        'check_in_minutes_before' => 60,
+    ],
+
     'check_ins' => [
         // Minutos en los que un segundo ingreso del mismo cliente cuenta como repetido.
         'duplicate_minutes' => (int) env('CHECKIN_DUPLICATE_MINUTES', 60),

@@ -83,6 +83,14 @@ class Settings
         return max(0, (int) $this->get('check_ins', 'duplicate_minutes', config('profitlife.check_ins.duplicate_minutes')));
     }
 
+    /**
+     * Horas antes de una cita hasta las que se cancela sin penalidad.
+     */
+    public function cancellationHours(): int
+    {
+        return max(0, (int) $this->get('appointments', 'cancellation_hours', config('profitlife.appointments.cancellation_hours')));
+    }
+
     public function flush(): void
     {
         Cache::forget(self::CACHE_KEY);

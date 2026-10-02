@@ -2,6 +2,7 @@
 
 namespace App\Domain\Memberships\Services;
 
+use App\Domain\Appointments\Services\SessionLedger;
 use App\Domain\Billing\Enums\InvoiceStatus;
 use App\Domain\Billing\Models\Invoice;
 use App\Domain\Memberships\Actions\RenewMembership;
@@ -26,6 +27,7 @@ class ProcessMemberships
         private readonly MembershipStatusChanger $statuses,
         private readonly UnfreezeMembership $unfreeze,
         private readonly RenewMembership $renew,
+        private readonly SessionLedger $ledger,
     ) {}
 
     /**
@@ -76,6 +78,7 @@ class ProcessMemberships
                 }
 
                 $this->statuses->change($membership, MembershipStatus::Expired, 'Fin de la vigencia', null);
+                $this->ledger->expireMembership($membership);
                 $summary['expired']++;
             });
 
