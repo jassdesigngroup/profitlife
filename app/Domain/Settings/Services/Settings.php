@@ -66,6 +66,15 @@ class Settings
         return (string) $this->get('members', 'number_prefix', config('profitlife.members.number_prefix'));
     }
 
+    /**
+     * Días de gracia para pagar una membresía antes de suspenderla. El ajuste
+     * de la sede prevalece sobre el global.
+     */
+    public function graceDays(?int $locationId = null): int
+    {
+        return max(0, (int) $this->get('memberships', 'grace_days', config('profitlife.memberships.grace_days'), $locationId));
+    }
+
     public function flush(): void
     {
         Cache::forget(self::CACHE_KEY);

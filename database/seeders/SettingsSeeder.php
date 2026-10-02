@@ -26,6 +26,10 @@ class SettingsSeeder extends Seeder
             }
         }
 
+        if ($settings->get('memberships', 'grace_days') === null) {
+            $settings->set('memberships', 'grace_days', config('profitlife.memberships.grace_days'));
+        }
+
         if ($settings->get('members', 'number_prefix') === null) {
             $settings->set('members', 'number_prefix', config('profitlife.members.number_prefix'));
         }

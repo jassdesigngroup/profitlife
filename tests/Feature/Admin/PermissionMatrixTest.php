@@ -32,6 +32,11 @@ dataset('pantallas', function () {
         'ficha de cliente' => ['admin.members.show', ['member'], $all],
         'crear cliente' => ['admin.members.create', [], [RoleName::SuperAdmin, RoleName::Admin, RoleName::LocationManager, RoleName::Reception]],
         'editar cliente' => ['admin.members.edit', ['member'], [RoleName::SuperAdmin, RoleName::Admin, RoleName::LocationManager, RoleName::Reception]],
+        'membresías' => ['admin.memberships.index', [], [RoleName::SuperAdmin, RoleName::Admin, RoleName::LocationManager, RoleName::Reception]],
+        'pagos' => ['admin.payments.index', [], [RoleName::SuperAdmin, RoleName::Admin, RoleName::LocationManager, RoleName::Reception]],
+        'planes' => ['admin.plans.index', [], [RoleName::SuperAdmin, RoleName::Admin]],
+        'crear plan' => ['admin.plans.create', [], [RoleName::SuperAdmin, RoleName::Admin]],
+        'ajustes' => ['admin.settings', [], [RoleName::SuperAdmin, RoleName::Admin]],
         'plantillas de consentimiento' => ['admin.consents.index', [], [RoleName::SuperAdmin, RoleName::Admin]],
     ];
 });

@@ -4,10 +4,14 @@
     $nav = [
         ['label' => 'Inicio', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard', 'icon' => 'home', 'can' => 'dashboard.view'],
         ['label' => 'Clientes', 'route' => 'admin.members.index', 'active' => 'admin.members.*', 'icon' => 'heart', 'can' => 'members.view'],
+        ['label' => 'Membresías', 'route' => 'admin.memberships.index', 'active' => 'admin.memberships.*', 'icon' => 'calendar', 'can' => 'memberships.view'],
+        ['label' => 'Pagos', 'route' => 'admin.payments.index', 'active' => 'admin.payments.*', 'icon' => 'chart', 'can' => 'payments.view'],
         ['label' => 'Sedes', 'route' => 'admin.locations.index', 'active' => 'admin.locations.*', 'icon' => 'map-pin', 'can' => 'locations.view'],
         ['label' => 'Staff', 'route' => 'admin.staff.index', 'active' => 'admin.staff.*', 'icon' => 'users', 'can' => 'staff.view'],
     ];
     $adminNav = [
+        ['label' => 'Planes', 'route' => 'admin.plans.index', 'active' => 'admin.plans.*', 'icon' => 'bolt', 'can' => 'memberships.manage-plans'],
+        ['label' => 'Ajustes', 'route' => 'admin.settings', 'active' => 'admin.settings', 'icon' => 'squares', 'can' => 'settings.update'],
         ['label' => 'Roles y permisos', 'route' => 'admin.roles.index', 'active' => 'admin.roles.*', 'icon' => 'shield', 'can' => 'roles.view'],
         ['label' => 'Consentimientos', 'route' => 'admin.consents.index', 'active' => 'admin.consents.*', 'icon' => 'check-circle', 'can' => 'consent-templates.manage'],
         ['label' => 'Auditoría', 'route' => 'admin.audit.index', 'active' => 'admin.audit.*', 'icon' => 'clipboard', 'can' => 'audit.view'],

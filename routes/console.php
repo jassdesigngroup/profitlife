@@ -15,3 +15,9 @@ Schedule::command('queue:work --stop-when-empty --max-time=55 --tries=3')
 
 Schedule::command('auth:clear-resets')->daily();
 Schedule::command('queue:prune-failed --hours=720')->daily();
+
+// Membresías: a las 00:05 en la zona horaria del negocio (la fecha "de hoy" es la local).
+Schedule::command('memberships:process')
+    ->dailyAt('00:05')
+    ->timezone(config('profitlife.display_timezone'))
+    ->withoutOverlapping(30);

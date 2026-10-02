@@ -151,7 +151,9 @@ cd /home/profitlife/app.profit-life.co && /usr/local/bin/php artisan schedule:ru
 ```
 
 La ruta de PHP puede variar; compruébela en Terminal con `which php` (debe ser la versión 8.3, p. ej.
-`/opt/cpanel/ea-php83/root/usr/bin/php`). Sin este cron las invitaciones y correos de recuperación no se envían.
+`/opt/cpanel/ea-php83/root/usr/bin/php`). Sin este cron las invitaciones y correos de recuperación no se envían,
+y tampoco corre el proceso diario de membresías (`memberships:process`, 00:05 hora de Bogotá: activa, vence,
+renueva, reanuda congelaciones y suspende por mora).
 
 ## 8. Actualizar a una nueva versión
 
@@ -173,6 +175,10 @@ php artisan up
   (prefijo del número visible de cliente, p. ej. `PL-000123`). El seeder lo guarda en `settings`;
   si se omite, los clientes se numeran con el prefijo genérico `CL`.
   Los documentos y fotos de clientes se guardan en `storage/app/private`, fuera de la web: inclúyalo en las copias de seguridad.
+- **Fase 4 (membresías y pagos):** `migrate` crea las tablas de planes, membresías, comprobantes y pagos;
+  `db:seed` añade el permiso `payments.discount` y el ajuste `memberships.grace_days` (por defecto 5, o el valor de
+  `MEMBERSHIP_GRACE_DAYS` en el `.env`). Los días de gracia se cambian luego en *Ajustes*, en general o por sede.
+  No requiere otro cron: el proceso diario va dentro de `schedule:run`. Verifíquelo con `php artisan schedule:list`.
 
 ## 9. Comprobaciones finales
 

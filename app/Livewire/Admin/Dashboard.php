@@ -2,14 +2,22 @@
 
 namespace App\Livewire\Admin;
 
+use App\Domain\Billing\Enums\PaymentStatus;
+use App\Domain\Billing\Models\Invoice;
+use App\Domain\Billing\Models\Payment;
 use App\Domain\Identity\Enums\Permission;
 use App\Domain\Locations\Models\Location;
 use App\Domain\Locations\Models\Room;
 use App\Domain\Members\Enums\MemberStatus;
 use App\Domain\Members\Models\Member;
+use App\Domain\Memberships\Enums\MembershipStatus as PlanMembershipStatus;
+use App\Domain\Memberships\Models\Membership;
+use App\Domain\Settings\Services\Settings;
 use App\Domain\Staff\Enums\StaffStatus;
 use App\Domain\Staff\Models\Staff;
+use App\Support\BusinessDate;
 use App\Support\Locations\CurrentLocation;
+use App\Support\Money;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use Livewire\Attributes\Title;
@@ -48,6 +56,23 @@ class Dashboard extends Component
                 : null,
         ];
 
+        $tz = app(Settings::class)->displayTimezone();
+        $monthStart = now($tz)->startOfMonth()->utc();
+
+        $kpis = [
+            'memberships' => $user->can(Permission::MembershipsView->value)
+                ? Membership::query()->where('status', PlanMembershipStatus::Active)
+                    ->when($locationId, fn ($q) => $q->whereHas('member', fn ($m) => $m->inLocation($locationId)))
+                    ->count()
+                : null,
+            'income' => $user->can(Permission::PaymentsView->value)
+                ? Money::ofCents((int) Payment::query()->inLocation($locationId)->where('status', PaymentStatus::Paid)->where('paid_at', '>=', $monthStart)->sum('amount_cents'))->format()
+                : null,
+            'overdue' => $user->can(Permission::PaymentsView->value)
+                ? Invoice::query()->inLocation($locationId)->open()->whereDate('due_on', '<', BusinessDate::today())->count()
+                : null,
+        ];
+
         /** @var Collection<int, Activity> $activity */
         $activity = $user->can(Permission::AuditView->value)
             ? Activity::query()->with('causer')->latest('id')->limit(6)->get()
@@ -57,6 +82,7 @@ class Dashboard extends Component
             'user' => $user,
             'currentLocation' => $current->location(),
             'stats' => $stats,
+            'kpis' => $kpis,
             'activity' => $activity,
         ]);
     }

@@ -61,7 +61,13 @@
     @endif
 
     <nav class="mb-5 flex gap-1 overflow-x-auto border-b border-steel-200" aria-label="Pestañas">
-        @foreach (['summary' => ['Resumen', 'user'], 'notes' => ['Notas', 'clipboard'], 'documents' => ['Documentos', 'squares'], 'consents' => ['Consentimientos', 'shield']] as $key => [$label, $icon])
+        @php
+            $tabs = ['summary' => ['Resumen', 'user']];
+            if (auth()->user()->can('memberships.view')) { $tabs['memberships'] = ['Membresías', 'heart']; }
+            if (auth()->user()->can('payments.view')) { $tabs['billing'] = ['Pagos', 'chart']; }
+            $tabs += ['notes' => ['Notas', 'clipboard'], 'documents' => ['Documentos', 'squares'], 'consents' => ['Consentimientos', 'shield']];
+        @endphp
+        @foreach ($tabs as $key => [$label, $icon])
             <button type="button" wire:click="$set('tab', '{{ $key }}')" @class([
                 '-mb-px flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-semibold',
                 'border-brand-500 text-ink-950' => $tab === $key,
@@ -122,6 +128,10 @@
                 <livewire:admin.members.member-contacts :member-id="$member->id" :key="'contacts-'.$member->id" />
             </div>
         </div>
+    @elseif ($tab === 'memberships' && auth()->user()->can('memberships.view'))
+        <livewire:admin.members.member-memberships :member-id="$member->id" :key="'memberships-'.$member->id" />
+    @elseif ($tab === 'billing' && auth()->user()->can('payments.view'))
+        <livewire:admin.members.member-billing :member-id="$member->id" :key="'billing-'.$member->id" />
     @elseif ($tab === 'notes')
         <livewire:admin.members.member-notes :member-id="$member->id" :key="'notes-'.$member->id" />
     @elseif ($tab === 'documents')
