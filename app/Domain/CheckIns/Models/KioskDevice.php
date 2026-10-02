@@ -5,7 +5,6 @@ namespace App\Domain\CheckIns\Models;
 use App\Domain\Audit\Enums\AuditEvent;
 use App\Domain\CheckIns\Policies\KioskDevicePolicy;
 use App\Domain\Locations\Models\Location;
-use App\Support\Concerns\HasLocationScope;
 use Database\Factories\KioskDeviceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
@@ -22,13 +21,17 @@ use Spatie\Activitylog\Traits\LogsActivity;
 /**
  * Tablet o celular fijo en la entrada de una sede. Se autentica con un
  * token Sanctum propio que se entrega una sola vez al vincularlo.
+ *
+ * No usa LocationScope: Sanctum lo carga mientras resuelve el usuario
+ * autenticado, y el scope consulta ese mismo usuario. Las pantallas lo
+ * filtran por sede de forma explícita y la Policy valida la sede.
  */
 #[Fillable(['location_id', 'name', 'is_active'])]
 #[UseFactory(KioskDeviceFactory::class)]
 #[UsePolicy(KioskDevicePolicy::class)]
 class KioskDevice extends Model
 {
-    use HasApiTokens, HasFactory, HasLocationScope, LogsActivity, SoftDeletes;
+    use HasApiTokens, HasFactory, LogsActivity, SoftDeletes;
 
     public const TOKEN_NAME = 'kiosk';
 
