@@ -16,6 +16,7 @@ use App\Domain\Memberships\Enums\MembershipStatus;
 use App\Domain\Memberships\Models\Membership;
 use App\Domain\Physiotherapy\Models\PhysiotherapyRecord;
 use App\Domain\Shared\Enums\DocumentType;
+use App\Domain\Training\Models\TrainingProgram;
 use App\Support\Concerns\HasLocationScope;
 use App\Support\Scopes\LocationScope;
 use Database\Factories\MemberFactory;
@@ -131,6 +132,14 @@ class Member extends Model
     public function physiotherapyRecord(): HasOne
     {
         return $this->hasOne(PhysiotherapyRecord::class);
+    }
+
+    /**
+     * @return HasMany<TrainingProgram, $this>
+     */
+    public function trainingPrograms(): HasMany
+    {
+        return $this->hasMany(TrainingProgram::class);
     }
 
     /**

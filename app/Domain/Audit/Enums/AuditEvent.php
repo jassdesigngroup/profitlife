@@ -70,6 +70,8 @@ enum AuditEvent: string
     case ClinicalRecordOpened = 'clinical_record_opened';
     case ClinicalTeamChanged = 'clinical_team_changed';
     case ClinicalEmergencyAccess = 'clinical_emergency_access';
+    case WorkoutLogged = 'workout_logged';
+    case ProgramSent = 'program_sent';
     case Created = 'created';
     case Updated = 'updated';
     case Deleted = 'deleted';
@@ -136,6 +138,8 @@ enum AuditEvent: string
             self::ClinicalRecordOpened => 'Historia clínica abierta',
             self::ClinicalTeamChanged => 'Equipo tratante modificado',
             self::ClinicalEmergencyAccess => 'Acceso de emergencia a historia clínica',
+            self::WorkoutLogged => 'Entrenamiento registrado',
+            self::ProgramSent => 'Programa enviado por correo',
             self::Created => 'Creación',
             self::Updated => 'Modificación',
             self::Deleted => 'Eliminación',
@@ -191,6 +195,7 @@ enum AuditEvent: string
             'check_ins' => 'Check-in',
             'appointments' => 'Citas',
             'clinical' => 'Historia clínica',
+            'training' => 'Entrenamiento',
             default => (string) $logName,
         };
     }
