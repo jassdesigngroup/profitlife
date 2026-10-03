@@ -578,10 +578,11 @@ equipment_exercise      exercise_id FK, equipment_id FK                         
 
 training_programs
   id
-  member_id           FK members
+  member_id           FK members NULL   -- NULL en plantillas
   staff_id            FK staff
   treatment_plan_id   FK treatment_plans NULL
   type                VARCHAR(20)   -- training | rehab
+  is_template         BOOLEAN default false
   name                VARCHAR(150)
   goal                TEXT NULL
   starts_on           DATE NULL
@@ -638,6 +639,15 @@ workout_log_sets
   set_number          TINYINT
   reps, weight_kg, duration_seconds, distance_meters, rpe   -- mismos tipos que lo prescrito
 ```
+
+Reglas (Fase 8):
+
+- Cambio aprobado sobre el esquema original: `training_programs.member_id` admite NULL y se añade `is_template`. Una plantilla no tiene cliente ni fechas, siempre es de tipo `training` y no admite registros de entrenamiento.
+- Asignar una plantilla o copiar un programa a otro cliente hace una copia completa (rutinas, ejercicios y series); la copia es independiente, de tipo `training` y sin plan de tratamiento.
+- Los programas los crean y editan quienes tienen `training.create`/`training.update` y pueden ver al cliente (sus sedes, con `LocationScope`). Los de tipo `rehab` siguen la historia clínica: solo el equipo tratante los ve y solo quien puede escribir en la historia los crea o edita.
+- Las rutinas y ejercicios con entrenamientos registrados no se pueden quitar del programa ni cambiar de ejercicio (`workout_log_sets` apunta a `workout_exercises`); sí se pueden cambiar sus series.
+- Un registro necesita al menos una serie; las series se validan contra la rutina y la fecha no puede ser futura. El progreso (peso máximo y volumen = repeticiones × peso) se calcula de `workout_log_sets`.
+- La biblioteca es común a todas las sedes; los videos solo pueden ser de YouTube o Vimeo (se embeben con `youtube-nocookie`) y las imágenes van al disco privado. Eliminar un ejercicio lo archiva (soft delete) y los programas lo conservan.
 
 ## 10. Evaluaciones físicas
 

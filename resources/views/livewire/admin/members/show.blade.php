@@ -66,6 +66,7 @@
             if (auth()->user()->can('memberships.view')) { $tabs['memberships'] = ['Membresías', 'heart']; }
             if (auth()->user()->can('appointments.view')) { $tabs['appointments'] = ['Citas', 'calendar']; }
             if (auth()->user()->can('viewSummary', [\App\Domain\Physiotherapy\Models\PhysiotherapyRecord::class, $member])) { $tabs['physio'] = ['Fisioterapia', 'clipboard']; }
+            if (auth()->user()->can('training.view')) { $tabs['training'] = ['Entrenamiento', 'bolt']; }
             if (auth()->user()->can('payments.view')) { $tabs['billing'] = ['Pagos', 'chart']; }
             if (auth()->user()->can('check-ins.view')) { $tabs['checkins'] = ['Asistencia', 'enter']; }
             $tabs += ['notes' => ['Notas', 'clipboard'], 'documents' => ['Documentos', 'squares'], 'consents' => ['Consentimientos', 'shield']];
@@ -137,6 +138,8 @@
         <livewire:admin.members.member-appointments :member-id="$member->id" :key="'appointments-'.$member->id" />
     @elseif ($tab === 'physio' && auth()->user()->can('viewSummary', [\App\Domain\Physiotherapy\Models\PhysiotherapyRecord::class, $member]))
         <livewire:admin.members.member-physiotherapy :member-id="$member->id" :key="'physio-'.$member->id" />
+    @elseif ($tab === 'training' && auth()->user()->can('training.view'))
+        <livewire:admin.members.member-training :member-id="$member->id" :key="'training-'.$member->id" />
     @elseif ($tab === 'billing' && auth()->user()->can('payments.view'))
         <livewire:admin.members.member-billing :member-id="$member->id" :key="'billing-'.$member->id" />
     @elseif ($tab === 'checkins' && auth()->user()->can('check-ins.view'))

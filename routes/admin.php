@@ -2,11 +2,13 @@
 
 use App\Http\Admin\Controllers\ClinicalRecordPdfController;
 use App\Http\Admin\Controllers\DocumentDownloadController;
+use App\Http\Admin\Controllers\ExerciseImageController;
 use App\Http\Admin\Controllers\InvoiceController;
 use App\Http\Admin\Controllers\MemberAccessCardController;
 use App\Http\Admin\Controllers\MemberPhotoController;
 use App\Http\Admin\Controllers\ProfileController;
 use App\Http\Admin\Controllers\SecurityController;
+use App\Http\Admin\Controllers\TrainingProgramPdfController;
 use App\Livewire\Admin\Appointments\Agenda;
 use App\Livewire\Admin\Audit\AuditIndex;
 use App\Livewire\Admin\Billing\PaymentIndex;
@@ -32,6 +34,10 @@ use App\Livewire\Admin\Settings\SettingsPage;
 use App\Livewire\Admin\Staff\StaffAvailability;
 use App\Livewire\Admin\Staff\StaffForm;
 use App\Livewire\Admin\Staff\StaffIndex;
+use App\Livewire\Admin\Training\ExerciseLibrary;
+use App\Livewire\Admin\Training\ProgramEditor;
+use App\Livewire\Admin\Training\TemplateIndex;
+use App\Livewire\Admin\Training\WorkoutLogger;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -69,6 +75,12 @@ Route::prefix('admin')
 
             Route::livewire('/asistencia', CheckInIndex::class)->name('check-ins.index');
             Route::livewire('/agenda', Agenda::class)->name('appointments.index');
+            Route::livewire('/entrenamiento/ejercicios', ExerciseLibrary::class)->name('training.exercises');
+            Route::get('/entrenamiento/ejercicios/{exercise}/imagen', ExerciseImageController::class)->whereNumber('exercise')->name('training.exercises.image');
+            Route::livewire('/entrenamiento/plantillas', TemplateIndex::class)->name('training.templates');
+            Route::livewire('/entrenamiento/programas/{program}', ProgramEditor::class)->whereNumber('program')->name('training.programs.edit');
+            Route::livewire('/entrenamiento/programas/{program}/registrar', WorkoutLogger::class)->whereNumber('program')->name('training.programs.log');
+            Route::get('/entrenamiento/programas/{program}/pdf', TrainingProgramPdfController::class)->whereNumber('program')->name('training.programs.pdf');
             Route::livewire('/servicios', ServiceIndex::class)->name('services.index');
             Route::livewire('/servicios/crear', ServiceForm::class)->name('services.create');
             Route::livewire('/servicios/{service}/editar', ServiceForm::class)->whereNumber('service')->name('services.edit');

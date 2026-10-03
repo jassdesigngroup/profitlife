@@ -33,10 +33,19 @@ use App\Domain\Physiotherapy\Actions\RecordPhysiotherapySession;
 use App\Domain\Physiotherapy\Actions\SaveTreatmentPlan;
 use App\Domain\Physiotherapy\Enums\PlanStatus;
 use App\Domain\Physiotherapy\Enums\SessionType;
+use App\Domain\Physiotherapy\Models\PhysiotherapyRecord;
 use App\Domain\Shared\Enums\DocumentType;
 use App\Domain\Staff\Enums\StaffStatus;
 use App\Domain\Staff\Models\Staff;
 use App\Domain\Staff\Models\StaffSchedule;
+use App\Domain\Training\Actions\DuplicateTrainingProgram;
+use App\Domain\Training\Actions\LogWorkout;
+use App\Domain\Training\Actions\SaveProgramStructure;
+use App\Domain\Training\Actions\SaveTrainingProgram;
+use App\Domain\Training\Enums\ProgramStatus;
+use App\Domain\Training\Enums\ProgramType;
+use App\Domain\Training\Models\Exercise;
+use App\Domain\Training\Models\TrainingProgram;
 use App\Support\BusinessDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
@@ -111,6 +120,7 @@ class DevelopmentSeeder extends Seeder
         $this->plansAndMemberships($cabecera, $provenza);
         $this->checkIns($cabecera, $provenza);
         $this->appointments($cabecera, $provenza);
+        $this->training($provenza);
 
         Activity::enableLogging();
     }
@@ -255,6 +265,82 @@ class DevelopmentSeeder extends Seeder
      * Historia clínica de ejemplo: consentimiento, evaluación firmada, plan y
      * dos sesiones (la última sin firmar).
      */
+    /**
+     * Plantilla de fuerza, un programa asignado con entrenamientos
+     * registrados (progreso) y ejercicios para casa del paciente de fisio.
+     */
+    private function training(Location $provenza): void
+    {
+        if (TrainingProgram::query()->withoutGlobalScopes()->exists()) {
+            return;
+        }
+
+        $trainer = User::query()->where('email', 'entrenador@profitlife.test')->firstOrFail();
+        $exercise = fn (string $name) => Exercise::query()->where('name', $name)->value('id');
+        $sets = fn (int $count, ?int $reps, ?float $kg = null, int $rest = 90, ?int $seconds = null) => array_fill(0, $count, [
+            'reps' => $reps, 'weight_kg' => $kg, 'duration_seconds' => $seconds, 'distance_meters' => null, 'rest_seconds' => $rest, 'rpe' => null, 'notes' => null,
+        ]);
+        $item = fn (string $name, array $sets, ?int $superset = null, ?string $notes = null) => [
+            'id' => null, 'exercise_id' => $exercise($name), 'superset_group' => $superset, 'notes' => $notes, 'sets' => $sets,
+        ];
+
+        $template = app(SaveTrainingProgram::class)->create(null, ProgramType::Training, [
+            'name' => 'Fuerza base 3 días', 'goal' => 'Técnica de los básicos y fuerza general.', 'starts_on' => null, 'ends_on' => null, 'status' => ProgramStatus::Active,
+        ], $trainer);
+        app(SaveProgramStructure::class)->execute($template, [
+            ['id' => null, 'name' => 'Día A · Pierna', 'notes' => '10 min de bicicleta para calentar.', 'exercises' => [
+                $item('Sentadilla con barra', $sets(4, 8, 40, 120), notes: 'Profundidad a paralelo.'),
+                $item('Peso muerto rumano', $sets(3, 10, 30)),
+                $item('Zancada caminando', $sets(3, 12, 8, 60), 1),
+                $item('Plancha frontal', $sets(3, null, null, 60, 40), 1),
+            ]],
+            ['id' => null, 'name' => 'Día B · Empuje', 'notes' => null, 'exercises' => [
+                $item('Press de banca con barra', $sets(4, 8, 30, 120)),
+                $item('Press de hombros con mancuernas', $sets(3, 10, 8)),
+                $item('Extensión de tríceps en polea', $sets(3, 12, 15, 60)),
+            ]],
+            ['id' => null, 'name' => 'Día C · Tirón', 'notes' => null, 'exercises' => [
+                $item('Jalón al pecho', $sets(4, 10, 35)),
+                $item('Remo con mancuerna a una mano', $sets(3, 10, 14)),
+                $item('Curl martillo', $sets(3, 12, 8, 60)),
+            ]],
+        ]);
+
+        $member = Member::query()->withoutGlobalScopes()->where('home_location_id', $provenza->id)->where('status', MemberStatus::Active)->orderBy('id')->firstOrFail();
+        $program = app(DuplicateTrainingProgram::class)->execute($template, $member, $trainer, 'Fuerza base · '.$member->first_name);
+        $program->update(['starts_on' => BusinessDate::today()->subWeeks(4)->toDateString()]);
+
+        $dayA = $program->workouts()->with('exercises.sets')->orderBy('sort_order')->first();
+        foreach ([26, 19, 12, 5] as $week => $daysAgo) {
+            $logSets = $dayA->exercises->mapWithKeys(fn ($i) => [$i->id => $i->sets->map(fn ($s) => [
+                'reps' => $s->reps, 'weight_kg' => $s->weight_kg === null ? null : (float) $s->weight_kg + 2.5 * $week, 'duration_seconds' => $s->duration_seconds, 'done' => true,
+            ])->all()])->all();
+            app(LogWorkout::class)->execute($program, $dayA, $trainer, [
+                'performed_at' => CarbonImmutable::now()->subDays($daysAgo)->setTime(12, 0), 'duration_minutes' => 55, 'rpe' => 7.5,
+                'notes' => $week === 3 ? 'Subió carga sin molestias.' : null, 'sets' => $logSets,
+            ]);
+        }
+
+        // Ejercicios para casa del paciente con historia clínica.
+        $record = PhysiotherapyRecord::query()->withoutGlobalScopes()->with('primaryStaff.user')->first();
+        if ($record !== null) {
+            $physio = $record->primaryStaff->user;
+            $rehab = app(SaveTrainingProgram::class)->create($record->member()->withoutGlobalScopes()->first(), ProgramType::Rehab, [
+                'name' => 'Rodilla: ejercicios en casa', 'goal' => 'Dos veces al día. Suspender si el dolor supera 4/10.',
+                'starts_on' => BusinessDate::today()->subDays(7), 'ends_on' => null, 'status' => ProgramStatus::Active,
+                'treatment_plan_id' => $record->plans()->value('id'),
+            ], $physio);
+            app(SaveProgramStructure::class)->execute($rehab, [
+                ['id' => null, 'name' => 'Rutina diaria', 'notes' => null, 'exercises' => [
+                    $item('Puente de glúteo', $sets(3, 15, null, 45)),
+                    $item('Abducción con banda', $sets(3, 15, null, 45)),
+                    $item('Sentadilla isométrica en pared', $sets(3, null, null, 60, 30)),
+                    $item('Equilibrio unipodal', $sets(3, null, null, 30, 30)),
+                ]],
+            ]);
+        }
+    }
+
     private function clinicalRecord(Member $member, Staff $fisio, Location $location): void
     {
         $user = $fisio->user;
