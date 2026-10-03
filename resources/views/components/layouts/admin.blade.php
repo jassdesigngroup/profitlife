@@ -6,6 +6,8 @@
         ['label' => 'Clientes', 'route' => 'admin.members.index', 'active' => 'admin.members.*', 'icon' => 'heart', 'can' => 'members.view'],
         ['label' => 'Agenda', 'route' => 'admin.appointments.index', 'active' => 'admin.appointments.*', 'icon' => 'calendar', 'can' => 'appointments.view'],
         ['label' => 'Asistencia', 'route' => 'admin.check-ins.index', 'active' => 'admin.check-ins.*', 'icon' => 'enter', 'can' => 'check-ins.view'],
+        ['label' => 'Ejercicios', 'route' => 'admin.training.exercises', 'active' => 'admin.training.exercises', 'icon' => 'bolt', 'can' => 'training.view'],
+        ['label' => 'Plantillas', 'route' => 'admin.training.templates', 'active' => 'admin.training.templates', 'icon' => 'squares', 'can' => 'training.view'],
         ['label' => 'Membresías', 'route' => 'admin.memberships.index', 'active' => 'admin.memberships.*', 'icon' => 'heart', 'can' => 'memberships.view'],
         ['label' => 'Pagos', 'route' => 'admin.payments.index', 'active' => 'admin.payments.*', 'icon' => 'chart', 'can' => 'payments.view'],
         ['label' => 'Sedes', 'route' => 'admin.locations.index', 'active' => 'admin.locations.*', 'icon' => 'map-pin', 'can' => 'locations.view'],

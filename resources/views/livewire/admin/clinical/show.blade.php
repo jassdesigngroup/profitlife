@@ -143,6 +143,11 @@
                 @endforelse
             </x-card>
 
+            {{-- Ejercicios para casa --}}
+            @if (auth()->user()->can('viewAny', \App\Domain\Training\Models\TrainingProgram::class))
+                <livewire:admin.clinical.clinical-home-exercises :record-id="$record->id" :key="'rehab-'.$record->id" />
+            @endif
+
             {{-- Documentos clínicos --}}
             <x-card title="Documentos clínicos">
                 @forelse ($documents as $doc)

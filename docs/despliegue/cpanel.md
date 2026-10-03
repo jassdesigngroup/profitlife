@@ -196,6 +196,10 @@ php artisan up
   cifran con `APP_KEY`: **guarde una copia segura del `.env`**; si se pierde la clave, las historias no se pueden leer.
   La exportación a PDF la hace por defecto solo el Super Admin; para dársela a los fisioterapeutas active
   "Exportar historia clínica" en *Roles y permisos*.
+- **Fase 8 (entrenamiento):** `migrate` crea la biblioteca de ejercicios, los programas, rutinas, series y registros.
+  `db:seed` carga la biblioteca base (16 grupos musculares, 16 equipos y 63 ejercicios); es idempotente y no
+  modifica los ejercicios que el centro ya haya editado. Las imágenes de ejercicios se guardan en
+  `storage/app/private/exercises` (inclúyalo en las copias). El envío del programa por correo sale por la cola.
 
 ## 9. Comprobaciones finales
 

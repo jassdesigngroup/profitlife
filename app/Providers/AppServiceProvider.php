@@ -39,6 +39,9 @@ use App\Domain\Settings\Services\Settings;
 use App\Domain\Staff\Models\Staff;
 use App\Domain\Staff\Models\StaffSchedule;
 use App\Domain\Staff\Models\StaffTimeOff;
+use App\Domain\Training\Models\Exercise;
+use App\Domain\Training\Models\TrainingProgram;
+use App\Domain\Training\Models\WorkoutLog;
 use App\Http\Admin\Middleware\EnsureCanAccessAdmin;
 use App\Http\Admin\Middleware\EnsureTwoFactorIsConfirmed;
 use App\Http\Admin\Middleware\EnsureUserIsActive;
@@ -108,6 +111,9 @@ class AppServiceProvider extends ServiceProvider
             'treatment_plan' => TreatmentPlan::class,
             'physiotherapy_session' => PhysiotherapySession::class,
             'clinical_note' => ClinicalNote::class,
+            'exercise' => Exercise::class,
+            'training_program' => TrainingProgram::class,
+            'workout_log' => WorkoutLog::class,
             'role' => Role::class,
             'permission' => Permission::class,
         ]);
